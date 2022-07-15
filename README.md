@@ -9,4 +9,4 @@ In vscode
 2. Select `deps.edn`
 
 ## Compile md2x.js
-`./scripts/compile-md2x.sh`
+`bash -x ./scripts/compile-md2x.sh`
