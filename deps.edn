@@ -4,4 +4,5 @@
         hawk/hawk {:mvn/version "0.2.11"}
         org.clojure/clojure {:mvn/version "1.11.1"}
         ring/ring {:mvn/version "1.9.5"}
-        ring-server/ring-server {:mvn/version "0.5.0"}}}
+        ring-server/ring-server {:mvn/version "0.5.0"}
+        selmer/selmer {:mvn/version "1.12.53"}}}
