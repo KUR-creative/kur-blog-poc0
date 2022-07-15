@@ -2,6 +2,7 @@
   "Writes posts of blog from input md and resource"
   (:require [clojure.java.io :as io]
             [hiccup.core :refer [html]]
+            [hiccup.element :refer [unordered-list link-to]]
             [hiccup.page :refer [doctype]])
   (:import (com.eclipsesource.v8 NodeJS)))
 
@@ -17,7 +18,7 @@
 (def scale1-viewport
   [:meta {:name "viewport"
           :content "width=device-width, initial-scale=1"}])
-(defn page [head-xs body-xs] ;; TODO? [[xs] [ys]]
+(defn page [head-xs body-xs] ;; imature abstraction!
   (list (doctype :html5) [:head head-xs] [:body body-xs]))
 
 ;;
@@ -25,9 +26,18 @@
   (let [template (html (page (list scale1-viewport) (list "%s")))]
     (format template content)))
 
+(defn post-archive [post-links]
+  (html [:head scale1-viewport]
+        [:body (list [:h1 "post archive"]
+                     (unordered-list (map link-to post-links post-links)))]))
+
+
 (comment
-  (spit "out/t.html"
-        (post {:content (obsidian-html (slurp "./README.md"))}))
+  (def post-links ["http://127.0.0.1:8384/"
+                   "https://clojuredocs.org/clojure.core/repeat"
+                   "https://clojuredocs.org/clojure.core/cycle"])
+  (spit "out/t.html" (post-archive post-links))
+  (spit "out/t.html" (post {:content (obsidian-html (slurp "./README.md"))}))
 
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
