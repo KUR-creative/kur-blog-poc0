@@ -3,3 +3,6 @@
 .cpcache
 .lsp
 .calva
+
+out/*
+!out/.gitkeep

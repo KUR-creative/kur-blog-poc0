@@ -11,4 +11,6 @@
 
 (comment
   (obsidian-html "### 3")
-  (obsidian-html (slurp "./README.md")))
+  (obsidian-html (slurp "./README.md"))
+  (spit "out/t.html" (obsidian-html (slurp "./README.md")))
+  )
