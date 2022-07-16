@@ -1,5 +1,6 @@
 (ns kur.util.time
-  (:import (java.time LocalDateTime ZoneId format.DateTimeFormatter)))
+  (:import (java.time LocalDateTime ZoneId)
+           (java.time.format DateTimeFormatter)))
 
 (defn local-date-time 
   ([inst] (local-date-time inst (ZoneId/systemDefault)))
