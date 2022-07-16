@@ -20,10 +20,14 @@
           :content "width=device-width, initial-scale=1"}])
 
 ;;
-(defn post [{:keys [content prev-link next-link archive-link]}]
-  (html [:head scale1-viewport] 
-        [:body (list content)]))
-
+(defn post [{:keys [content prev next home]}]
+  (let [optional-link (fn [url text] (if url (link-to url text) text))
+        footer [:footer [:pre [:br] [:hr]
+                         (optional-link prev "prev") "   "
+                         (optional-link home "home") "   "
+                         (optional-link next "next")]]]
+    (html [:head scale1-viewport] [:body (list content footer)])))
+    
 (defn post-archive [post-links]
   (html [:head scale1-viewport]
         [:body (list [:h1 "post archive"]
@@ -34,7 +38,8 @@
                    "https://clojuredocs.org/clojure.core/repeat"
                    "https://clojuredocs.org/clojure.core/cycle"])
   (spit "out/t.html" (post-archive post-links))
-  (spit "out/t.html" (post {:content (obsidian-html (slurp "./README.md"))}))
+  (spit "out/t.html" (post {:content (obsidian-html (slurp "./README.md"))
+                            :prev "http://127.0.0.1:8384/"}))
 
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
