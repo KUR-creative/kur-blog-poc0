@@ -18,19 +18,16 @@
 (def scale1-viewport
   [:meta {:name "viewport"
           :content "width=device-width, initial-scale=1"}])
-(defn page [head-xs body-xs] ;; imature abstraction!
-  (list (doctype :html5) [:head head-xs] [:body body-xs]))
 
 ;;
 (defn post [{:keys [content prev-link next-link archive-link]}]
-  (let [template (html (page (list scale1-viewport) (list "%s")))]
-    (format template content)))
+  (html [:head scale1-viewport] 
+        [:body (list content)]))
 
 (defn post-archive [post-links]
   (html [:head scale1-viewport]
         [:body (list [:h1 "post archive"]
                      (unordered-list (map link-to post-links post-links)))]))
-
 
 (comment
   (def post-links ["http://127.0.0.1:8384/"
@@ -41,5 +38,4 @@
 
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
-     (spit "out/t.html" (obsidian-html (slurp "./README.md"))))
-  )
+     (spit "out/t.html" (obsidian-html (slurp "./README.md")))))
