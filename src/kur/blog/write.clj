@@ -6,7 +6,7 @@
             [hiccup.page :refer [doctype]])
   (:import (com.eclipsesource.v8 NodeJS)))
 
-;;
+;; md2x
 (defonce nodejs-runtime (NodeJS/createNodeJS))
 (def md2x-path "./md2x/out/md2x.js")
 (def md2x (.require nodejs-runtime (io/file md2x-path)))
@@ -14,18 +14,20 @@
 (defn obsidian-html [md]
   (.executeJSFunction md2x "obsidian" (to-array [md])))
 
-;;
+;; Entities
+
+;; Templates
 (def scale1-viewport
   [:meta {:name "viewport"
           :content "width=device-width, initial-scale=1"}])
 
-;;
+;; Make html
 (defn optional-link
   ([url] (optional-link url url url))
   ([url text] (optional-link url text text))
   ([url text no-link-text] (if url (link-to url text) no-link-text)))
 
-(defn post [{:keys [content prev next home]}]
+(defn post-html [{:keys [content prev next home]}]
   (html [:head scale1-viewport]
         [:body (list content
                      [:footer [:pre [:br] [:hr]
@@ -33,7 +35,7 @@
                                (optional-link home "home") "   "
                                (optional-link next "next")]])]))
 
-(defn post-archive [post-links]
+(defn post-archive-html [post-links]
   (html [:head scale1-viewport]
         [:body (list [:h1 "post archive"]
                      (unordered-list (map optional-link post-links)))]))
@@ -42,9 +44,10 @@
   (def post-links ["http://127.0.0.1:8384/"
                    "https://clojuredocs.org/clojure.core/repeat"
                    "https://clojuredocs.org/clojure.core/cycle"])
-  (spit "out/t.html" (post-archive post-links))
-  (spit "out/t.html" (post {:content (obsidian-html (slurp "./README.md"))
-                            :prev "http://127.0.0.1:8384/"}))
+  (spit "out/t.html" (post-archive-html post-links))
+  (spit "out/t.html"
+        (post-html {:content (obsidian-html (slurp "./README.md"))
+                    :prev "http://127.0.0.1:8384/"}))
 
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
