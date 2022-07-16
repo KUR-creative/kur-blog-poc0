@@ -20,18 +20,23 @@
           :content "width=device-width, initial-scale=1"}])
 
 ;;
+(defn optional-link
+  ([url] (optional-link url url url))
+  ([url text] (optional-link url text text))
+  ([url text no-link-text] (if url (link-to url text) no-link-text)))
+
 (defn post [{:keys [content prev next home]}]
-  (let [optional-link (fn [url text] (if url (link-to url text) text))
-        footer [:footer [:pre [:br] [:hr]
-                         (optional-link prev "prev") "   "
-                         (optional-link home "home") "   "
-                         (optional-link next "next")]]]
-    (html [:head scale1-viewport] [:body (list content footer)])))
-    
+  (html [:head scale1-viewport]
+        [:body (list content
+                     [:footer [:pre [:br] [:hr]
+                               (optional-link prev "prev") "   "
+                               (optional-link home "home") "   "
+                               (optional-link next "next")]])]))
+
 (defn post-archive [post-links]
   (html [:head scale1-viewport]
         [:body (list [:h1 "post archive"]
-                     (unordered-list (map link-to post-links post-links)))]))
+                     (unordered-list (map optional-link post-links)))]))
 
 (comment
   (def post-links ["http://127.0.0.1:8384/"
