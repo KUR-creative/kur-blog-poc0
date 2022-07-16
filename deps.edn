@@ -6,4 +6,5 @@
         org.clojure/clojure {:mvn/version "1.11.1"}
         ring/ring {:mvn/version "1.9.5"}
         ring-server/ring-server {:mvn/version "0.5.0"}
+        org.clojure/test.check {:mvn/version "1.1.1"}
         }}
