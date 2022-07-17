@@ -2,8 +2,6 @@
   "Writes posts of blog from input md and resource"
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
-            [clojure.spec.gen.alpha :as sg]
             [clojure.string :as str]
             [hiccup.core :refer [html]]
             [hiccup.element :refer [unordered-list link-to]]
@@ -49,9 +47,11 @@
                      (unordered-list (map optional-link post-links)))]))
 
 (comment
+  (require '[clojure.spec.alpha :as s]
+           '[clojure.spec.gen.alpha :as sg])
   (def md-paths (fs/list-dir "./test/fixture/blog-v1-md"))
   (map post-info md-paths)
-  (map post-info (sg/sample (s/gen :post/id)))
+  (map post-info (sg/sample (s/gen ::post/id)))
 
   (def post-links ["http://127.0.0.1:8384/"
                    "https://clojuredocs.org/clojure.core/repeat"
@@ -64,8 +64,4 @@
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
      (spit "out/t.html" (obsidian-html (slurp "./README.md"))))
-
-  (str/join " " (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
-                     (map fs/file-name) (map set)
-                     (apply clojure.set/union) (sort)))
   )  
