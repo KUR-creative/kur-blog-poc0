@@ -31,7 +31,7 @@
               (sg/tuple (s/gen ::author) (s/gen ::ctime)))))
 
 (s/def ::meta-str ; + means public, else private.
-  #{"+" "-" ""})
+  #{"+" "-"})
 
 (def obsidian-title-symbol* #"[\!\,\ \.\+\=\-\_\(\)]*")
 (def gen-post-title
@@ -42,7 +42,10 @@
                     (ug/string-from-regex alphanumeric*)
                     (ug/string-from-regex hangul*))))
 (s/def ::title
-  (s/with-gen string? (fn [] gen-post-title)))
+  (s/with-gen (s/and string? 
+                     #(not (s/valid? ::meta-str 
+                                     (first (str/split % #"\." 2)))))
+    (fn [] gen-post-title)))
 
 (s/def :post.fname/id+title
   (s/with-gen string?
@@ -58,6 +61,10 @@
   (sg/sample (ug/string-from-regex obsidian-title-symbol*) 30)
   (sg/sample gen-post-title 30)
   (s/exercise ::title)
+  (s/explain ::title "+.asdf")
+  (s/explain ::title "-.asdf")
+  (s/explain ::title ".asdf")
+
 
   #_(str/join " " ;; To know used characters
               (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
