@@ -1,18 +1,20 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+ :deps {;; Fundamental
+        org.clojure/clojure {:mvn/version "1.11.1"}
+        medley/medley {:mvn/version "1.4.0"}
 
-        ;; file system
+        ;; File system
         babashka/fs {:mvn/version "0.1.6"}
         hawk/hawk {:mvn/version "0.2.11"}
 
-        ;; html rendering
+        ;; Html rendering
         com.eclipsesource.j2v8/j2v8_linux_x86_64 {:mvn/version "4.8.0"}
         hiccup/hiccup {:mvn/version "1.0.5"}
 
-        ;; server
+        ;; Server
         ring/ring {:mvn/version "1.9.5"}
         ring-server/ring-server {:mvn/version "0.5.0"}
 
-        ;; test
+        ;; Test
         org.clojure/test.check {:mvn/version "1.1.1"}
         com.gfredericks/test.chuck {:mvn/version "0.2.13"}}}
