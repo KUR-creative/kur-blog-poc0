@@ -4,5 +4,11 @@
 .lsp
 .calva
 
+# Empty directories for various testing
 out/*
 !out/.gitkeep
+
+test/fixture/post-md/*
+!test/fixture/post-md/.gitkeep
+test/fixture/post-html/*
+!test/fixture/post-html/.gitkeep
