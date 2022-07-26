@@ -26,7 +26,7 @@
 (def scale1-viewport
   [:meta {:name "viewport"
           :content "width=device-width, initial-scale=1"}])
-          
+
 ;; Make html
 (defn optional-link
   ([url] (optional-link url url url))
@@ -46,6 +46,11 @@
         [:body (list [:h1 "post archive"]
                      (unordered-list (map optional-link post-links)))]))
 
+;; Actions (has side effects)
+(defn write-post [from-md to-html]
+  (spit (str to-html)
+        (post-html {:content (-> (str from-md) slurp obsidian-html)})))
+
 (comment
   (require '[clojure.spec.alpha :as s]
            '[clojure.spec.gen.alpha :as sg])
@@ -64,4 +69,13 @@
   #_((obsidian-html "### 3")
      (obsidian-html (slurp "./README.md"))
      (spit "out/t.html" (obsidian-html (slurp "./README.md"))))
-  )  
+
+  ;; Actions
+  #_(def md-fixture-dir)
+  (def html-dir "test/fixture/post-html/")
+  (def post-md1 "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
+  (def post-html1 (fs/path html-dir "오버 띵킹의 함정을 조심하라.html"))
+
+  ; create
+  (write-post post-md1 post-html1) ; post/xx-info for state
+  (fs/delete post-html1))
