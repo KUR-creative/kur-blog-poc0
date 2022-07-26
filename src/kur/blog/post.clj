@@ -5,8 +5,8 @@
             [clojure.spec.gen.alpha :as sg]
             [clojure.string :as str]
             [com.gfredericks.test.chuck.generators :as ug]
-            [kur.util.time :refer [time-format]]
             [kur.util.regex :refer [hangul* alphanumeric*]]
+            [kur.util.time :refer [time-format]]
             [medley.core :refer [assoc-some]]))
 
 (defn digit? [c] ; TODO: move to util?
@@ -104,7 +104,9 @@
     (is (= parts (fname->parts (parts->fname parts)))
         (str "\"" (parts->fname parts) "\"")))
 
+  (fname->parts (fs/file-name "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md"))
   #_(str/join " " ;; To know used characters
               (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
                    (map fs/file-name) (map set)
-                   (apply clojure.set/union) (sort))))
+                   (apply clojure.set/union) (sort)))
+  )
