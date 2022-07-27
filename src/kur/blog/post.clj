@@ -98,13 +98,15 @@
   (map #(vector % (file-name-info %))
        (sg/sample (s/gen ::file-name) 20))
   (s/explain ::file-name "kur1234567890.md")
+  (s/explain ::file-name "kur1234567890")
 
-  (require '[clojure.test :refer [is]])
-  (doseq [parts (reverse (sg/sample (s/gen ::file-name-parts) 1000))]
-    (is (= parts (fname->parts (parts->fname parts)))
-        (str "\"" (parts->fname parts) "\"")))
+  (require '[clojure.test.check.clojure-test :refer [defspec]]
+           '[clojure.test.check.properties :refer [for-all] :rename {for-all defprop}])
+  (defspec fname-parts-roundtrip-test 100
+    (defprop [parts (s/gen ::file-name-parts)]
+      (= parts (fname->parts (parts->fname parts)))))
+  (fname-parts-roundtrip-test)
 
-  (fname->parts (fs/file-name "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md"))
   #_(str/join " " ;; To know used characters
               (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
                    (map fs/file-name) (map set)
