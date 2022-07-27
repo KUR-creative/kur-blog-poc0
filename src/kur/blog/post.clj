@@ -101,12 +101,12 @@
   (s/explain ::file-name "kur1234567890")
 
   (require '[clojure.test.check.clojure-test :refer [defspec]]
-           '[clojure.test.check.properties :refer [for-all] :rename {for-all defprop}])
+           '[clojure.test.check.properties :refer [for-all] :rename {for-all defp}])
   (defspec fname-parts-roundtrip-test 100
-    (defprop [parts (s/gen ::file-name-parts)]
+    (defp [parts (s/gen ::file-name-parts)]
       (= parts (fname->parts (parts->fname parts)))))
   (fname-parts-roundtrip-test)
-
+  
   #_(str/join " " ;; To know used characters
               (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
                    (map fs/file-name) (map set)
