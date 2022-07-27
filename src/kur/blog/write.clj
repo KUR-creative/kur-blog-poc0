@@ -26,7 +26,8 @@
 (def scale1-viewport
   [:meta {:name "viewport"
           :content "width=device-width, initial-scale=1"}])
-          
+(def charset-utf8 [:meta {:charset "utf-8"}])
+
 ;; Make html
 (defn optional-link
   ([url] (optional-link url url url))
@@ -34,7 +35,7 @@
   ([url text no-link-text] (if url (link-to url text) no-link-text)))
 
 (defn post-html [{:keys [content prev next home]}]
-  (html [:head scale1-viewport]
+  (html [:head scale1-viewport charset-utf8]
         [:body (list content
                      [:footer [:pre [:br] [:hr]
                                (optional-link prev "prev") "   "
@@ -42,13 +43,13 @@
                                (optional-link next "next")]])]))
 
 (defn post-archive-html [post-links]
-  (html [:head scale1-viewport]
+  (html [:head scale1-viewport charset-utf8]
         [:body (list [:h1 "post archive"]
                      (unordered-list (map optional-link post-links)))]))
 
 ;; Actions (has side effects)
 (defn write-post [from-md to-html]
-  (spit (str to-html) 
+  (spit (str to-html)
         (post-html {:content (-> (str from-md) slurp obsidian-html)})))
 
 (comment
@@ -75,8 +76,7 @@
   (def html-dir "test/fixture/post-html/")
   (def post-md1 "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
   (def post-html1 (fs/path html-dir "오버 띵킹의 함정을 조심하라.html"))
-  
+
   ; create
   (write-post post-md1 post-html1) ; post/xx-info for state
-  (fs/delete post-html1)
-  )  
+  (fs/delete post-html1))
