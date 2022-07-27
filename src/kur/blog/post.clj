@@ -59,7 +59,7 @@
             ((juxt ::id ::meta-str ::title))
             (remove nil?)
             (str/join ".")) "." post-extension))
-            
+
 (defn fname->parts [post-fname]
   (let [base-name (fs/strip-ext post-fname)
         [id meta title] (str/split base-name #"\." 3)
@@ -70,8 +70,8 @@
         (assoc ret ::title (if title (str meta "." title) meta))
         ret))))
 
-(s/def ::file-name
-  (s/with-gen string?
+(s/def ::file-name ;; file name contains extension.
+  (s/with-gen (s/and string? #(re-find #"\.md$" %))
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
 
 (defn file-name-info [post-fname]
