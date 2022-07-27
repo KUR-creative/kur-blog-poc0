@@ -11,11 +11,9 @@
    "/kur2207161305" "test/fixture/blog-v1-html/kur2207161305.+.kill-current-sexp의 Emacs, VSCode 구현.html"})
    
 (defn send-file [req]
-  (let [page (id-path (:uri req))]
-    (def page page)
-    (if page
-      (resp/file-response page)
-      (resp/not-found "ERROR: 404 not found"))))
+  (if-let [page (id-path (:uri req))]
+    (resp/file-response page)
+    (resp/not-found "ERROR: 404 not found")))
 
 (def app send-file)
 

@@ -1,11 +1,9 @@
 (ns kur.util.file-system
   (:require [babashka.fs :as fs]
-            [clojure.spec.alpha :as s]
-            [clojure.spec.gen.alpha :as sg]))
+            [clojure.spec.alpha :as s]))
 
 (s/def ::file-name ;; not a root
   (s/and string? #(not (#{"" "." ".."} %)) #(not (.contains % "/"))))
-(sg/sample (s/gen ::file-name))
 
 (s/def ::path (s/and string? #(not= % "")))
 ;; NOTE: Valid unix path are way too robust.
