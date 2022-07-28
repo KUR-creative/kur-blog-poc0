@@ -15,22 +15,22 @@
   (s/and string? #(seq %) #(not (str/includes? % "."))
          #(not (digit? (last %)))))
 
-(def ctime-fmt "YYMMddHHmm")
-(def ctime-len (count ctime-fmt)) ; NOTE: it can be different! (eg. "YYY" -> 2022)
-(s/def ::ctime ; md file creation time. 
+(def create-time-fmt "YYMMddHHmm")
+(def create-time-len (count create-time-fmt)) ; NOTE: it can be different! (eg. "YYY" -> 2022)
+(s/def ::create-time ; md file creation time. 
   ; NOTE: It doesn't check date time validity (eg. 9999999999 is valid)
   (s/with-gen (s/and string? #(re-matches #"\d+" %) #(= (count %) 10))
-    #(sg/fmap (fn [inst] (time-format ctime-fmt inst)) (s/gen inst?))))
+    #(sg/fmap (fn [inst] (time-format create-time-fmt inst)) (s/gen inst?))))
 
 (defn id-info [post-id]
-  (let [author-len (- (count post-id) ctime-len)
-        [author ctime] (map #(apply str %) (split-at author-len post-id))]
+  (let [author-len (- (count post-id) create-time-len)
+        [author create-time] (map #(apply str %) (split-at author-len post-id))]
     {:author (when (s/valid? ::author author) author)
-     :ctime (when (s/valid? ::ctime ctime) ctime)}))
+     :create-time (when (s/valid? ::create-time create-time) create-time)}))
 (s/def ::id
   (s/with-gen (s/and string? #(every? some? (vals (id-info %))))
-    #(sg/fmap (fn [[author ctime]] (str author ctime))
-              (sg/tuple (s/gen ::author) (s/gen ::ctime)))))
+    #(sg/fmap (fn [[author create-time]] (str author create-time))
+              (sg/tuple (s/gen ::author) (s/gen ::create-time)))))
 
 (s/def ::meta-str ; + means public, else private.
   #{"+" "-"})
@@ -80,7 +80,7 @@
 
 (comment
   (id-info "asd1234567890")
-  (s/exercise ::ctime 20)
+  (s/exercise ::create-time 20)
   (s/exercise ::author 20)
   (s/exercise ::id 20)
   (s/exercise ::meta-str)
