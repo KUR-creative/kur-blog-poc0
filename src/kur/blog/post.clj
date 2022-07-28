@@ -9,6 +9,7 @@
             [kur.util.time :refer [time-format]]
             [medley.core :refer [assoc-some]]))
 
+;;; Post id parts
 (defn digit? [c] ; TODO: move to util?
   (and (>= 0 (compare \0 c)) (>= 0 (compare c \9))))
 (s/def ::author
@@ -22,6 +23,7 @@
   (s/with-gen (s/and string? #(re-matches #"\d+" %) #(= (count %) 10))
     #(sg/fmap (fn [inst] (time-format create-time-fmt inst)) (s/gen inst?))))
 
+;;; Post file name parts
 (defn id-info [post-id]
   (let [author-len (- (count post-id) create-time-len)
         [author create-time] (map #(apply str %) (split-at author-len post-id))]
@@ -49,18 +51,23 @@
                                      (first (str/split % #"\." 2)))))
     (fn [] gen-post-title)))
 
+;;; Post file name <-> parts round trip
 (s/def ::file-name-parts
   (s/keys :req [::id] :opt [::meta-str ::title]))
 
 (def post-extension "md")
 
-(defn parts->fname [fname-parts]
+(defn parts->fname 
+  "post-fname is (fs/file-name path). post-fname includes .extension."
+  [fname-parts]
   (str (->> fname-parts
             ((juxt ::id ::meta-str ::title))
             (remove nil?)
             (str/join ".")) "." post-extension))
 
-(defn fname->parts [post-fname]
+(defn fname->parts
+  "post-fname is (fs/file-name path). post-fname includes .extension."
+  [post-fname]
   (let [base-name (fs/strip-ext post-fname)
         [id meta title] (str/split base-name #"\." 3)
         ret {::id id}]
@@ -74,10 +81,21 @@
   (s/with-gen (s/and string? #(re-find #"\.md$" %))
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
 
-(defn file-name-info [post-fname]
-  (let [parts (str/split post-fname #"\.")]
-    parts))
+;;; Post path -> information
+(def public?
+  "meta-str to public? policy"
+  {"+" true})
 
+(defn file-info [path]
+  (if (and (fs/exists? path) 
+           (s/valid? ::file-name (str path))) ; Check stricter? p in md dir?
+    (let [info (-> path fs/file-name fname->parts)]
+      (assoc info
+             ::public? (public? (::meta-str info))
+             ::last-modified-time (fs/last-modified-time path)))
+    {}))
+
+;;
 (comment
   (id-info "asd1234567890")
   (s/exercise ::create-time 20)
@@ -95,20 +113,23 @@
   (s/exercise ::file-name-parts 20)
   (sg/sample (s/gen ::file-name-parts) 20)
   (sg/sample (s/gen ::file-name) 20)
-  (map #(vector % (file-name-info %))
-       (sg/sample (s/gen ::file-name) 20))
   (s/explain ::file-name "kur1234567890.md")
   (s/explain ::file-name "kur1234567890")
 
   (require '[clojure.test.check.clojure-test :refer [defspec]]
            '[clojure.test.check.properties :refer [for-all] :rename {for-all defp}])
-  (defspec fname-parts-roundtrip-test 100
+  (defspec fname-parts-roundtrip-test 1000
     (defp [parts (s/gen ::file-name-parts)]
       (= parts (fname->parts (parts->fname parts)))))
   (fname-parts-roundtrip-test)
-  
+
+  (require '[clojure.test :refer [is]])
+  (is (= (file-info "not-exists") {}))
+  (map file-info (fs/list-dir "test/fixture/blog-v1-md"))
+  #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
+  )
+
   #_(str/join " " ;; To know used characters
               (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
                    (map fs/file-name) (map set)
                    (apply clojure.set/union) (sort)))
-  )
