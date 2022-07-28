@@ -20,13 +20,13 @@
 (s/def ::create-time ; md file creation time. 
   ; NOTE: It doesn't check date time validity (eg. 9999999999 is valid)
   (s/with-gen (s/and string? #(re-matches #"\d+" %) #(= (count %) 10))
-    #(sg/fmap (fn [inst] (time-format create-time-fmt inst)) 
+    #(sg/fmap (fn [inst] (time-format create-time-fmt inst))
               (s/gen inst?))))
 
 ;;; Post file name parts
 (defn id-info [post-id]
   (let [author-len (- (count post-id) create-time-len)
-        [author create-time] 
+        [author create-time]
         (map #(apply str %) (split-at author-len post-id))]
     {:author (when (s/valid? ::author author) author)
      :create-time (when (s/valid? ::create-time create-time) create-time)}))
@@ -58,7 +58,7 @@
 
 (def post-extension "md")
 
-(defn parts->fname 
+(defn parts->fname
   "post-fname is (fs/file-name path). post-fname includes .extension."
   [fname-parts]
   (str (->> fname-parts
@@ -82,13 +82,13 @@
   (s/with-gen (s/and string? #(re-find #"\.md$" %))
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
 
-;;; Post path -> information
+;;; Post information
 (def public?
   "meta-str to public? policy"
   {"+" true})
 
 (defn file-info [path]
-  (if (and (fs/exists? path) 
+  (if (and (fs/exists? path)
            (s/valid? ::file-name (str path))) ; Check stricter? p in md dir?
     (let [info (-> path fs/file-name fname->parts)]
       (assoc info
