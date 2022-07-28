@@ -6,12 +6,11 @@
             [clojure.string :as str]
             [com.gfredericks.test.chuck.generators :as ug]
             [kur.util.regex :refer [hangul* alphanumeric*]]
+            [kur.util.string :refer [digit?]]
             [kur.util.time :refer [time-format]]
             [medley.core :refer [assoc-some]]))
 
 ;;; Post id parts
-(defn digit? [c] ; TODO: move to util?
-  (and (>= 0 (compare \0 c)) (>= 0 (compare c \9))))
 (s/def ::author
   (s/and string? #(seq %) #(not (str/includes? % "."))
          #(not (digit? (last %)))))
