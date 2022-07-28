@@ -96,6 +96,13 @@
              ::last-modified-time (fs/last-modified-time path)))
     {}))
 
+(defn happened [old-info new-info]
+  {:pre [(or (some? old-info) (some? new-info))]}
+  (cond (nil? old-info)       ::create
+        (nil? new-info)       ::delete
+        (= old-info new-info) ::as-is
+        :else                 ::update))
+
 ;;
 (comment
   (id-info "asd1234567890")
@@ -126,11 +133,20 @@
 
   (require '[clojure.test :refer [is]])
   (is (= (file-info "not-exists") {}))
-  (map file-info (fs/list-dir "test/fixture/blog-v1-md"))
-  #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
-  )
 
-  #_(str/join " " ;; To know used characters
-              (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
-                   (map fs/file-name) (map set)
-                   (apply clojure.set/union) (sort)))
+  (mapv file-info (fs/list-dir "test/fixture/blog-v1-md"))
+  #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
+
+  (def info {:id "k1234567890"})
+
+  (is (thrown? AssertionError (happened nil nil)))
+  [(happened nil info) ;; create
+   (happened info nil) ;; delete
+   (happened info info) ;; as is
+   (happened info (assoc info ::public true)) ;; update
+   ])
+
+#_(str/join " " ;; To know used characters
+            (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
+                 (map fs/file-name) (map set)
+                 (apply clojure.set/union) (sort)))
