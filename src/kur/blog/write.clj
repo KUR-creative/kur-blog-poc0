@@ -1,20 +1,11 @@
 (ns kur.blog.write
   "Write functions"
   (:require [babashka.fs :as fs]
-            [clojure.java.io :as io]
             [clojure.string :as str]
             [hiccup.core :refer [html]]
             [hiccup.element :refer [unordered-list link-to]]
-            [kur.blog.post :as post])
-  (:import (com.eclipsesource.v8 NodeJS)))
-
-;; md2x
-(defonce nodejs-runtime (NodeJS/createNodeJS))
-(def md2x-path "./md2x/out/md2x.js")
-(def md2x (.require nodejs-runtime (io/file md2x-path)))
-
-(defn obsidian-html [md]
-  (.executeJSFunction md2x "obsidian" (to-array [md])))
+            [kur.blog.post :as post]
+            [kur.blog.md2x :refer [obsidian-html]]))
 
 ;; Entities
 (defn post-info [md-path]
@@ -67,9 +58,7 @@
         (post-html {:content (obsidian-html (slurp "./README.md"))
                     :prev "http://127.0.0.1:8384/"}))
 
-  #_((obsidian-html "### 3")
-     (obsidian-html (slurp "./README.md"))
-     (spit "out/t.html" (obsidian-html (slurp "./README.md"))))
+  
 
   ;; Actions
   #_(def md-fixture-dir)
@@ -79,4 +68,5 @@
 
   ; create
   (write-post post-md1 post-html1) ; post/xx-info for state
-  (fs/delete post-html1))
+  (fs/delete post-html1)
+  )
