@@ -37,7 +37,7 @@
   (html [:head scale1-viewport charset-utf8]
         [:body (list [:h1 "post archive"]
                      (unordered-list (map optional-link post-links)))]))
-
+                     
 ;; Actions (has side effects)
 (defn write-post [from-md to-html]
   (spit (str to-html)

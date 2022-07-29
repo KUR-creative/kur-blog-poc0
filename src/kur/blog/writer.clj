@@ -11,8 +11,7 @@
 (defn happeneds [old-m new-m]
   (let [all-ks (apply conj (set (keys old-m)) (keys new-m))]
     (zipmap all-ks
-            (map post/happened
-                 (map old-m all-ks) (map new-m all-ks)))))
+            (map post/happened (map old-m all-ks) (map new-m all-ks)))))
 
 (comment
   (def md-dir
@@ -23,4 +22,5 @@
 
   (def old-m {:0 0 :1 1 :2 2 :3 3 :4 4})
   (def new-m                {:3 3 :4 44 :5 5 :6 6 :7 7})
-  (seq (happeneds old-m new-m)))
+  (happeneds old-m new-m)
+  )
