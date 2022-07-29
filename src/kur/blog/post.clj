@@ -80,6 +80,8 @@
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
 
 ;;; Post information
+(s/def ::public? boolean?)
+
 (def public?
   "meta-str to public? policy"
   {"+" true})
@@ -141,7 +143,7 @@
   [(happened nil info) ;; create
    (happened info nil) ;; delete
    (happened info info) ;; as is
-   (happened info (assoc info ::public true)) ;; update
+   (happened info (assoc info ::public? true)) ;; update
    ]
   )
 
