@@ -97,7 +97,7 @@
     {}))
 
 (defn happened [old-info new-info]
-  {:pre [(or (some? old-info) (some? new-info))]}
+  {:pre [(or old-info new-info)]}
   (cond (nil? old-info)       ::create
         (nil? new-info)       ::delete
         (= old-info new-info) ::as-is
