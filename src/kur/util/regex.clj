@@ -3,9 +3,18 @@
 (def alphanumeric  #"[a-zA-Z0-9]")
 (def alphanumeric* #"[a-zA-Z0-9]*")
 (def alphanumeric+ #"[a-zA-Z0-9]+")
+
+(def ascii  #"[ -~]")
+(def ascii* #"[ -~]*")
+(def ascii+ #"[ -~]+")
+
 (def hangul  #"[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]")
 (def hangul* #"[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]*")
 (def hangul+ #"[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+")
+
+(def common-whitespace  #"[ \t\n\r]")
+(def common-whitespace* #"[ \t\n\r]*")
+(def common-whitespace+ #"[ \t\n\r]+")
 
 (comment
   (require '[clojure.spec.gen.alpha :as sg]
