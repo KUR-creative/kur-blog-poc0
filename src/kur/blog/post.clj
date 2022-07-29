@@ -4,7 +4,7 @@
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as sg]
             [clojure.string :as str]
-            [com.gfredericks.test.chuck.generators :as ug]
+            [com.gfredericks.test.chuck.generators :as g']
             [kur.util.regex :refer [hangul* alphanumeric*]]
             [kur.util.string :refer [digit?]]
             [kur.util.time :refer [time-format]]
@@ -43,9 +43,9 @@
   "<id>[.<meta>].<title>.md  NOTE: title can be empty string"
   (sg/fmap (fn [[syms alphanums hanguls]]
              (->> (str syms alphanums hanguls) vec shuffle (apply str)))
-           (sg/tuple (ug/string-from-regex obsidian-title-symbol*)
-                     (ug/string-from-regex alphanumeric*)
-                     (ug/string-from-regex hangul*))))
+           (sg/tuple (g'/string-from-regex obsidian-title-symbol*)
+                     (g'/string-from-regex alphanumeric*)
+                     (g'/string-from-regex hangul*))))
 (s/def ::title
   (s/with-gen (s/and string?
                      #(not (s/valid? ::meta-str
@@ -111,7 +111,7 @@
   (s/exercise ::id 20)
   (s/exercise ::meta-str)
 
-  (sg/sample (ug/string-from-regex obsidian-title-symbol*) 30)
+  (sg/sample (g'/string-from-regex obsidian-title-symbol*) 30)
   (sg/sample gen-post-title 30)
   (s/exercise ::title)
   (s/explain ::title "+.asdf")
