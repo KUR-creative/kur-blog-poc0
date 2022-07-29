@@ -1,4 +1,4 @@
-{:paths ["src" "test"]
+{:paths ["src" "test/unit" "test/integration"]
  :deps {;; Fundamental
         medley/medley {:mvn/version "1.4.0"}
         org.clojure/clojure {:mvn/version "1.11.1"}

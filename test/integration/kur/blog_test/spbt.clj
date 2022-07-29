@@ -1,4 +1,4 @@
-(ns kur.blog.integral.model-test
+(ns kur.blog-test.spbt
   "Blog Integration Test Using Stateful PBT"
   (:require
    [clojure.spec.alpha :as s]
