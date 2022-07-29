@@ -4,7 +4,7 @@
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as sg]
             [clojure.string :as str]
-            [com.gfredericks.test.chuck.generators :as g']
+            [kur.util.generator :refer [string-from-regexes]]
             [kur.util.regex :refer [hangul* alphanumeric*]]
             [kur.util.string :refer [digit?]]
             [kur.util.time :refer [time-format]]
@@ -41,11 +41,8 @@
 (def obsidian-title-symbol* #"[\!\,\ \.\+\=\-\_\(\)]*")
 (def gen-post-title
   "<id>[.<meta>].<title>.md  NOTE: title can be empty string"
-  (sg/fmap (fn [[syms alphanums hanguls]]
-             (->> (str syms alphanums hanguls) vec shuffle (apply str)))
-           (sg/tuple (g'/string-from-regex obsidian-title-symbol*)
-                     (g'/string-from-regex alphanumeric*)
-                     (g'/string-from-regex hangul*))))
+  (string-from-regexes obsidian-title-symbol* alphanumeric* hangul*))
+
 (s/def ::title
   (s/with-gen (s/and string?
                      #(not (s/valid? ::meta-str
@@ -111,6 +108,7 @@
   (s/exercise ::id 20)
   (s/exercise ::meta-str)
 
+  (require '[com.gfredericks.test.chuck.generators :as g'])
   (sg/sample (g'/string-from-regex obsidian-title-symbol*) 30)
   (sg/sample gen-post-title 30)
   (s/exercise ::title)
@@ -144,7 +142,8 @@
    (happened info nil) ;; delete
    (happened info info) ;; as is
    (happened info (assoc info ::public true)) ;; update
-   ])
+   ]
+  )
 
 #_(str/join " " ;; To know used characters
             (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
