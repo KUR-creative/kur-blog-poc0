@@ -124,12 +124,13 @@
   (s/explain ::file-name "kur1234567890.md")
   (s/explain ::file-name "kur1234567890")
 
-  (require '[clojure.test.check.clojure-test :refer [defspec]]
-           '[clojure.test.check.properties :refer [for-all] :rename {for-all defp}])
-  (defspec fname-parts-roundtrip-test 1000
-    (defp [parts (s/gen ::file-name-parts)]
-      (= parts (fname->parts (parts->fname parts)))))
-  (fname-parts-roundtrip-test)
+  (do
+    (require '[clojure.test.check.clojure-test :refer [defspec]]
+             '[clojure.test.check.properties :refer [for-all] :rename {for-all defp}])
+    (defspec fname-parts-roundtrip-test 1000
+      (defp [parts (s/gen ::file-name-parts)]
+        (= parts (fname->parts (parts->fname parts)))))
+    (fname-parts-roundtrip-test))
 
   (require '[clojure.test :refer [is]])
   (is (= (file-info "not-exists") {}))
@@ -144,8 +145,7 @@
    (happened info nil) ;; delete
    (happened info info) ;; as is
    (happened info (assoc info ::public? true)) ;; update
-   ]
-  )
+   ])
 
 #_(str/join " " ;; To know used characters
             (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
