@@ -1,6 +1,7 @@
 (ns kur.blog-test.spbt
   "Blog Integration Test Using Stateful PBT"
   (:require
+   [babashka.fs :as fs]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.test.check.generators :as g]
@@ -32,14 +33,20 @@
 
 ;;; Operations
 (defn gen-create [state]
-  (g/fmap #(vector :create (key %) (val %)) (g/elements state)))
-
-(defn gen-delete [state]
-  (g/fmap #(vector :delete (key %)) (g/elements state)))
+  (g/fmap #(hash-map :op :create, :id (key %), :post (val %))
+          (g/elements state)))
 
 (defn gen-read [state]
-  (g/fmap #(vector :read %)
-          (g/one-of [(gen-valid-url state) (gen-invalid-url state)])))
+  (g/let [[url valid?]
+          (g/one-of [(g/tuple (gen-valid-url state) (g/return true))
+                     (g/tuple (gen-invalid-url state) (g/return false))])]
+    (if valid?
+      (let [id (::post/id (-> url fs/file-name post/fname->parts))]
+        {:op :read, :url url, :id id, :post (state id)})
+      {:op :read, :url url})))
+
+(defn gen-delete [state]
+  (g/fmap #(hash-map :op :delete :id (key %)) (g/elements state)))
 
 (defn gen-ops [state]
   (g/vector (g/one-of [(gen-create state) (gen-read state)
@@ -68,7 +75,10 @@
   (url-path-set state) ;; NOTE: unit test for reader/url-path-set
 
   (g/sample (gen-create state) 10)
+  (g/sample (gen-read state) 20)
   (g/sample (gen-delete state) 10)
 
-  (g/sample (gen-read state) 20)
-  (g/sample (gen-ops state) 20))
+  (g/sample (gen-ops state) 20)
+
+  ;;; Runners
+  )
