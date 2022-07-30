@@ -52,6 +52,16 @@
   (g/vector (g/one-of [(gen-create state) (gen-read state)
                        (gen-delete state)])))
 
+;;; Runners
+(defn run-model [state ops]
+  (reduce ;reductions
+   (fn [s {:keys [op id url post]}] ;(println "\n>>>" op id url)
+     (case op
+       :create (assoc s id post)
+       :delete (dissoc s id)
+       :read s))
+   state ops))
+
 ;;;
 (comment
   #_(require '[babashka.fs :as fs])
@@ -81,4 +91,4 @@
   (g/sample (gen-ops state) 20)
 
   ;;; Runners
-  )
+  (run-model state (last (g/sample (gen-ops state) 20))))
