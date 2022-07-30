@@ -39,6 +39,9 @@
   (g/fmap #(vector :read %)
           (g/one-of [(gen-valid-url state) (gen-invalid-url state)])))
 
+(defn gen-ops [state]
+  (g/vector (g/one-of [(gen-create state) (gen-read state)
+                       (gen-delete state)])))
 ;;;
 (comment
   #_(require '[babashka.fs :as fs])
@@ -60,4 +63,5 @@
   (url "http" "localhost" 8384 "")
   (g/sample (gen-valid-url state) 20)
   (g/sample (gen-invalid-url state) 20)
-  (g/sample (gen-read state) 20))
+  (g/sample (gen-read state) 20)
+  (g/sample (gen-ops state) 20))
