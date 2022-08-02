@@ -8,12 +8,8 @@
   {:paths paths
    :handler (fn [_ e] (async/put! chan e))})
 
-;(def wait-ms 1000)
-(def wait-ms 4000)
-
 (defn run-monitor [wait-ms chan]
   (async/go-loop [got-event? false]
-    #_(println "got-event?" got-event?)
     (let [t (async/timeout wait-ms)]
       (async/alt!
         chan ([x] (when x ; when chan is closed, loop ends.
@@ -27,10 +23,8 @@
 ;;
 (comment
   (add-tap (bound-fn* prn))
-  (def ch (async/chan)))
+  (def ch (async/chan))
 
-;;
-(comment
   (def w (hawk/watch! [(dir-watch-spec ["./test/fixture/post-md"] ch)]))
   (hawk/stop! w)
 
