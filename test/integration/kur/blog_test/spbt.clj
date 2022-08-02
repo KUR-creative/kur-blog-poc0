@@ -67,16 +67,16 @@
                (throw (Exception. "read result (not implemented)")))}))
 
 (defn run-actual [op]
-  1)
+  0)
 
 ;;; Tests
 (defspec model-test 100
   (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
     (loop [state {}, ops operations]
-      (if (seq ops)
-        (let [op (first ops)
-              {:keys [next-state expect]} (run-model state op)
+      (if-let [op (first ops)]
+        (let [{:keys [next-state expect]} (run-model state op)
               actual (run-actual op)]
+          ;(prn op "\n" expect actual (= expect actual))
           (if (= expect actual)
             (recur next-state (rest ops))
             false)) ; Test Failed!
