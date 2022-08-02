@@ -16,10 +16,12 @@
     #_(println "got-event?" got-event?)
     (let [t (async/timeout wait-ms)]
       (async/alt!
-        chan ([x] (println "Read" x "from chan") (recur true))
+        chan ([x] (when x ; when chan is closed, loop ends.
+                    (println "Read" x "from chan")
+                    (recur true)))
         t (do (when got-event?
                 (println "Timed out. Act upon events!")
-                (println "events are resolved.")) 
+                (println "events are resolved."))
               (recur false))))))
 
 ;;
@@ -28,10 +30,9 @@
   (def ch (async/chan)))
 
 ;;
-(comment 
+(comment
   (def w (hawk/watch! [(dir-watch-spec ["./test/fixture/post-md"] ch)]))
   (hawk/stop! w)
 
   (run-monitor 4000 ch)
-  #_(async/put! ch 2)
-  )
+  #_(async/put! ch 2))
