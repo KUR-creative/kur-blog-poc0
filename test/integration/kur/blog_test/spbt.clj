@@ -35,7 +35,7 @@
 
 ;;; Operations
 (defn gen-create [id:post]
-  (g/fmap #(hash-map :op :create, :id (key %), :post (val %))
+  (g/fmap #(hash-map :kind :create, :id (key %), :post (val %))
           (g/elements id:post)))
 
 (defn gen-read [id:post]
@@ -44,11 +44,11 @@
                      (g/tuple (gen-invalid-url id:post) (g/return false))])]
     (if valid?
       (let [id (::post/id (-> url fs/file-name post/fname->parts))]
-        {:op :read, :url url, :id id, :post (id:post id)})
-      {:op :read, :url url})))
+        {:kind :read, :url url, :id id, :post (id:post id)})
+      {:kind :read, :url url})))
 
 (defn gen-delete [id:post]
-  (g/fmap #(hash-map :op :delete :id (key %)) (g/elements id:post)))
+  (g/fmap #(hash-map :kind :delete :id (key %)) (g/elements id:post)))
 
 (defn gen-ops [id:post]
   (g/vector (g/one-of [(gen-create id:post)
@@ -57,11 +57,11 @@
 
 ;;; Runners
 (defn run-model [state op]
-  (let [next-state (case (:op op)
+  (let [next-state (case (:kind op)
                      :create (assoc state (:id op) (:post op))
                      :delete (dissoc state (:id op)))]
     {:next-state next-state
-     :expect (if (#{:create :delete} (:op op)) ;; ret = #public-posts
+     :expect (if (#{:create :delete} (:kind op)) ;; ret = #public-posts
                (->> (vals next-state)
                     (filter ::post/public?) count)
                (throw (Exception. "read result (not implemented)")))}))
