@@ -4,7 +4,9 @@
    [babashka.fs :as fs]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
+   [clojure.test.check.clojure-test :refer [defspec]]
    [clojure.test.check.generators :as g]
+   [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
    [kur.blog.post :as post]
    [kur.blog.reader :refer [url-path-set]]
    [kur.util.generator :refer [string-from-regexes]]
@@ -47,25 +49,38 @@
 
 (defn gen-delete [id:post]
   (g/fmap #(hash-map :op :delete :id (key %)) (g/elements id:post)))
-  
-#_(def gen-num-publics
-  (g/return {:op :num-publics}))
 
 (defn gen-ops [id:post]
-  (g/vector (g/one-of [(gen-create id:post) 
+  (g/vector (g/one-of [(gen-create id:post)
                        #_(gen-read id:post)
-                       (gen-delete id:post)
-                       ])))
+                       (gen-delete id:post)])))
 
 ;;; Runners
-(defn run-model [state ops]
-  (reduce ;reductions
-   (fn [s {:keys [op id url post]}] ;(println "\n>>>" op id url)
-     (case op
-       :create (assoc s id post)
-       :delete (dissoc s id)
-       :read s))
-   state ops))
+(defn run-model [state op]
+  (let [next-state (case (:op op)
+                     :create (assoc state (:id op) (:post op))
+                     :delete (dissoc state (:id op)))]
+    {:next-state next-state
+     :expect (if (#{:create :delete} (:op op)) ;; ret = #public-posts
+               (->> (vals next-state)
+                    (filter ::post/public?) count)
+               (throw (Exception. "read result (not implemented)")))}))
+
+(defn run-actual [op]
+  1)
+
+;;; Tests
+(defspec model-test 100
+  (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
+    (loop [state {}, ops operations]
+      (if (seq ops)
+        (let [op (first ops)
+              {:keys [next-state expect]} (run-model state op)
+              actual (run-actual op)]
+          (if (= expect actual)
+            (recur next-state (rest ops))
+            false)) ; Test Failed!
+        true))))    ; Test Success: All ops are runned succesfully!
 
 ;;;
 (comment
@@ -98,4 +113,4 @@
 
   ;;; Runners
   ;(run-model state (last (g/sample (gen-ops state) 20)))
-  )
+  (model-test))
