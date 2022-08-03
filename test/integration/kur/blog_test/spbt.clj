@@ -10,6 +10,7 @@
    [kur.blog.main :as main]
    [kur.blog.post :as post]
    [kur.blog.publisher :refer [url-path-set]]
+   [kur.util.file-system :refer [delete-all-except-gitkeep]]
    [kur.util.generator :refer [string-from-regexes]]
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]))
 
@@ -88,23 +89,23 @@
 
 ;;; Tests
 (defspec model-test 100
-  (let [server (main/server :md-dir "test/fixture/post-md"
-                            :html-dir "test/fixture/post-html"
-                            :fs-wait-ms 100
-                            :port 8080)
-        server (main/start! server)]
+  (let [md-dir "test/fixture/post-md"
+        html-dir "test/fixture/post-html"
+        cleanup-files #(delete-all-except-gitkeep md-dir)
+        server (main/start! (main/server :md-dir md-dir :html-dir html-dir
+                                         :fs-wait-ms 100 :port 8080))]
     (try
       (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
         (loop [state {}, ops operations]
           (if-let [op (first ops)]
             (let [{:keys [next-state expect]} (run-model state op)
                   actual (run-actual op server)]
-                ;(prn op "\n" expect actual (= expect actual))
               (if (= expect actual)
                 (recur next-state (rest ops))
-                false)) ; Test Failed!
-            true))) ; Test Success: All ops are runned succesfully!
-      (finally (main/close! server)))))
+                (do (cleanup-files) false))) ; Test Failed!
+            (do (cleanup-files) true)))) ; Test Success: All ops are runned succesfully!
+      (finally (main/close! server)
+               (cleanup-files)))))
 
 ;;;
 (comment
