@@ -9,7 +9,7 @@
    [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
    [kur.blog.main :as main]
    [kur.blog.post :as post]
-   [kur.blog.reader :refer [url-path-set]]
+   [kur.blog.publisher :refer [url-path-set]]
    [kur.util.generator :refer [string-from-regexes]]
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]))
 
