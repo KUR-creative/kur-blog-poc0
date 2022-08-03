@@ -7,6 +7,7 @@
    [clojure.test.check.clojure-test :refer [defspec]]
    [clojure.test.check.generators :as g]
    [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
+   [kur.blog.main :as main]
    [kur.blog.post :as post]
    [kur.blog.reader :refer [url-path-set]]
    [kur.util.generator :refer [string-from-regexes]]
@@ -77,16 +78,24 @@
 
 ;;; Tests
 (defspec model-test 100
-  (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
-    (loop [state {}, ops operations]
-      (if-let [op (first ops)]
-        (let [{:keys [next-state expect]} (run-model state op)
-              actual (run-actual op)]
-          ;(prn op "\n" expect actual (= expect actual))
-          (if (= expect actual)
-            (recur next-state (rest ops))
-            false)) ; Test Failed!
-        true))))    ; Test Success: All ops are runned succesfully!
+  (let [s (main/server :md-dir "test/fixture/blog-v1-md"
+                       :html-dir "test/fixture/blog-v1-html/"
+                       :fs-wait-ms 100
+                       :port 8080)
+        s (main/start! s)
+        ret
+        (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
+          (loop [state {}, ops operations]
+            (if-let [op (first ops)]
+              (let [{:keys [next-state expect]} (run-model state op)
+                    actual (run-actual op)]
+                ;(prn op "\n" expect actual (= expect actual))
+                (if (= expect actual)
+                  (recur next-state (rest ops))
+                  false)) ; Test Failed!
+              true))) ; Test Success: All ops are runned succesfully!
+        s (main/close! s)]
+    ret))
 
 ;;;
 (comment
@@ -120,4 +129,6 @@
 
   ;;; Runners
   ;(run-model state (last (g/sample (gen-ops state) 20)))
+  ;(model-test)
+
   (model-test))
