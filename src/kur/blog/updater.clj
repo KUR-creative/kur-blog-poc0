@@ -13,6 +13,15 @@
     (zipmap all-ks
             (map post/happened (map old-m all-ks) (map new-m all-ks)))))
 
+;;;
+(defn updater [in-dirs out-dirs]
+  {::in-dirs in-dirs
+   ::out-dirs out-dirs})
+
+(defn update! [updater]
+  (prn 'update!))
+
+;;;
 (comment
   (def md-dir
     "NOTE: config or policy"

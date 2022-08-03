@@ -24,11 +24,13 @@
 ;;
 (defn monitor
   "Return monitor entity from config" ;TODO: Add writer fn or something
-  [wait-ms monitor-dir & more-dirs]
+  [wait-ms request-fn monitor-dir & more-dirs]
+  (request-fn)
   (let [ch (async/chan)]
     {::event-chan ch
      ::watch-spec (watch-spec (cons monitor-dir more-dirs) ch)
      ::wait-ms wait-ms
+     ::request-fn request-fn
      ::running? false
      ::closed? false}))
 
@@ -64,11 +66,12 @@
   #_(run-monitor 4000 ch)
   #_(async/put! ch 2)
 
-  (monitor 10 "test/fixture/blog-v1-md")
-  (monitor 100 "test/fixture/blog-v1-md" "test/fixture/blog-v1-html"))
+  (monitor 10 #(prn "no-op") "test/fixture/blog-v1-md")
+  (monitor 100 #(prn "no-op")
+           "test/fixture/blog-v1-md" "test/fixture/blog-v1-html"))
 
 (comment (require '[clojure.test :refer [is]])
-         (def m (monitor 1500 "test/fixture/blog-v1-md"))
+         (def m (monitor 1500 #(prn "no-op") "test/fixture/blog-v1-md"))
          (is (and (not (::running? m)) (not (::closed? m))))
          (def m (start! m))
          (is (and      (::running? m)  (not (::closed? m))))

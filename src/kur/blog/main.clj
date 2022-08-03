@@ -3,7 +3,8 @@
   (:require
    ;[clojure.core.async :as async]
    [hawk.core :as hawk]
-   [kur.blog.monitor :as monitor]))
+   [kur.blog.monitor :as monitor]
+   [kur.blog.updater :as updater]))
 
 (defn server
   "Create server with configuration.
@@ -20,15 +21,21 @@
                requests UPDATER to write/update/delete posts
    port        An port to open to clients"
   [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
-  (assoc config :monitor (monitor/monitor fs-wait-ms md-dir)))
+  (let [updater (updater/updater [md-dir] [html-dir])
+        monitor (monitor/monitor fs-wait-ms
+                                 #(updater/update! updater)
+                                 md-dir)]
+    (assoc config :updater updater :monitor monitor)))
 
 (defn start! [server]
   (-> server
-      (update :monitor monitor/start!)))
+      (update :monitor monitor/start!))
+  (println "Server startd!"))
 
 (defn close! [server]
   (-> server
-      (update :monitor monitor/close!)))
+      (update :monitor monitor/close!))
+  (println "server closed!"))
 
 (comment
   (server {1 2 3 4})
