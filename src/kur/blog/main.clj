@@ -12,9 +12,6 @@
    - MONITOR monitors file system changes, and requests WRITER
    - READER is a web server. It reads post and send response.
    - WRITER writes/updates/deletes html posts.
-     (note: Currently WRITER doesn't have any state.
-            So server doesn't have explicit WRITER component,
-            and MONITOR just calls functions of WIRTER.)
 
    md-dir      An directory to MONITOR post markdown
    html-dir    An directory to WRITE and READ post html

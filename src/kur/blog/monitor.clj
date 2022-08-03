@@ -33,7 +33,7 @@
      ::closed? false}))
 
 (defn start!
-  "Start monitor. Idempotent fn."
+  "Start monitor and return started monitor. Idempotent fn."
   [monitor]
   (when-not (::closed? monitor)
     (if-not (::running? monitor)
@@ -43,7 +43,7 @@
       monitor)))
 
 (defn close!
-  "Close monitor. Closed monitor can't run again."
+  "Close monitor and return closed monitor. Closed one can't run again."
   [monitor]
   (when-not (::closed? monitor)
     (if (::running? monitor)
