@@ -1,4 +1,4 @@
-(ns kur.blog.reader
+(ns kur.blog.publisher
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
             [kur.blog.post :as post]

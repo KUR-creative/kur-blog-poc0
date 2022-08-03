@@ -9,15 +9,15 @@
   "Create server with configuration.
 
    A server is composed of the following components.
-   - MONITOR monitors file system changes, and requests WRITER
-   - READER is a web server. It reads post and send response.
-   - WRITER writes/updates/deletes html posts.
+   - MONITOR monitors file system changes, and requests UPDATER
+   - PUBLISHER is a web server. It reads post and send response.
+   - UPDATER writes/updates/deletes html posts.
 
    md-dir      An directory to MONITOR post markdown
-   html-dir    An directory to WRITE and READ post html
+   html-dir    An directory to UPDATE and PUBLISH post html
    fs-wait-ms  MONITOR waits fs-wait-ms milliseconds
                after consecutive file events in md-dir and then
-               requests WRITER to write/update/delete posts
+               requests UPDATER to write/update/delete posts
    port        An port to open to clients"
   [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
   (assoc config :monitor (monitor/monitor fs-wait-ms md-dir)))

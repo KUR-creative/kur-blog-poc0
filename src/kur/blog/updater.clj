@@ -1,5 +1,5 @@
-(ns kur.blog.writer
-  "Write'r' actually write html post from md using wrtie functions"
+(ns kur.blog.updater
+  "Updater write/update/delete html post from md using wrtie functions"
   (:require [babashka.fs :as fs]
             [kur.blog.post :as post]))
 
@@ -22,5 +22,4 @@
 
   (def old-m {:0 0 :1 1 :2 2 :3 3 :4 4})
   (def new-m                {:3 3 :4 44 :5 5 :6 6 :7 7})
-  (happeneds old-m new-m)
-  )
+  (happeneds old-m new-m))

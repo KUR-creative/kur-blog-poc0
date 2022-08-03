@@ -37,7 +37,7 @@
   (html [:head scale1-viewport charset-utf8]
         [:body (list [:h1 "post archive"]
                      (unordered-list (map optional-link post-links)))]))
-                     
+
 ;; Actions (has side effects)
 (defn write-post [from-md to-html]
   (spit (str to-html)
@@ -58,7 +58,7 @@
         (post-html {:content (obsidian-html (slurp "./README.md"))
                     :prev "http://127.0.0.1:8384/"}))
 
-  
+
 
   ;; Actions
   #_(def md-fixture-dir)
@@ -68,5 +68,4 @@
 
   ; create
   (write-post post-md1 post-html1) ; post/xx-info for state
-  (fs/delete post-html1)
-  )
+  (fs/delete post-html1))
