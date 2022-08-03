@@ -28,14 +28,14 @@
     (assoc config :updater updater :monitor monitor)))
 
 (defn start! [server]
+  (println "Start server!")
   (-> server
-      (update :monitor monitor/start!))
-  (println "Server startd!"))
+      (update :monitor monitor/start!)))
 
 (defn close! [server]
+  (println "Close server!")
   (-> server
-      (update :monitor monitor/close!))
-  (println "server closed!"))
+      (update :monitor monitor/close!)))
 
 ;;;
 (comment
