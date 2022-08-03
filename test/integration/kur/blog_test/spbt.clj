@@ -59,19 +59,15 @@
                        gen-n-publics])))
 
 ;;; Runners
-(defn run-model [state op] ;; TODO: refactor?
-  (let [next-state (case (:kind op)
-                     :create (assoc state (:id op) (:post op))
-                     :read state
-                     :delete (dissoc state (:id op))
-                     :n-publics state)]
-    {:next-state next-state
-     :expect
-     (case (:kind op)
-       :create :no-check
-       :read  (throw (Exception. "read result (not implemented)"))
-       :delete :no-check
-       :n-publics (->> (vals next-state) (filter ::post/public?) count))}))
+(defn run-model [state op]
+  (case (:kind op)
+    :create    {:next-state (assoc state (:id op) (:post op))
+                :expect :no-check}
+    :read      (throw (Exception. "read result (not implemented)"))
+    :delete    {:next-state (dissoc state (:id op))
+                :expect :no-check}
+    :n-publics {:next-state state
+                :expect (count (filter #(-> % val ::post/public?) state))}))
 
 (defn run-actual [op]
   (case (:kind op)
@@ -101,6 +97,7 @@
                    (apply clojure.set/union) (sort)))
 
   (def id:post (last (g/sample (s/gen ::id:post))))
+  (def state id:post)
 
   ;;; gens & specs
   (g/sample (s/gen ::md-text) 30)
