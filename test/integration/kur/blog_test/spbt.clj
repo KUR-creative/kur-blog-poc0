@@ -50,26 +50,34 @@
 (defn gen-delete [id:post]
   (g/fmap #(hash-map :kind :delete :id (key %)) (g/elements id:post)))
 
+(def gen-n-publics (g/return {:kind :n-publics}))
+
 (defn gen-ops [id:post]
   (g/vector (g/one-of [(gen-create id:post)
                        #_(gen-read id:post)
-                       (gen-delete id:post)])))
+                       (gen-delete id:post)
+                       gen-n-publics])))
 
 ;;; Runners
-(defn run-model [state op]
+(defn run-model [state op] ;; TODO: refactor?
   (let [next-state (case (:kind op)
                      :create (assoc state (:id op) (:post op))
-                     :delete (dissoc state (:id op)))]
+                     :read state
+                     :delete (dissoc state (:id op))
+                     :n-publics state)]
     {:next-state next-state
      :expect
      (case (:kind op)
-       ;:read (->> (vals next-state) (filter ::post/public?) count)
        :create :no-check
+       :read  (throw (Exception. "read result (not implemented)"))
        :delete :no-check
-       (throw (Exception. "read result (not implemented)")))}))
+       :n-publics (->> (vals next-state) (filter ::post/public?) count))}))
 
 (defn run-actual [op]
-  :no-check)
+  (case (:kind op)
+    :create :no-check
+    :delete :no-check
+    :n-publics 0))
 
 ;;; Tests
 (defspec model-test 100
@@ -109,7 +117,7 @@
   (g/sample (gen-create id:post) 10)
   (g/sample (gen-read id:post) 20)
   (g/sample (gen-delete id:post) 10)
-  #_(g/sample gen-num-publics)
+  (g/sample gen-n-publics)
 
   (g/sample (gen-ops id:post) 20)
 
