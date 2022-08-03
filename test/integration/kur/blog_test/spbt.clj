@@ -92,20 +92,19 @@
                             :html-dir "test/fixture/post-html"
                             :fs-wait-ms 100
                             :port 8080)
-        server (main/start! server)
-        ret
-        (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
-          (loop [state {}, ops operations]
-            (if-let [op (first ops)]
-              (let [{:keys [next-state expect]} (run-model state op)
-                    actual (run-actual op server)]
+        server (main/start! server)]
+    (try
+      (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
+        (loop [state {}, ops operations]
+          (if-let [op (first ops)]
+            (let [{:keys [next-state expect]} (run-model state op)
+                  actual (run-actual op server)]
                 ;(prn op "\n" expect actual (= expect actual))
-                (if (= expect actual)
-                  (recur next-state (rest ops))
-                  false)) ; Test Failed!
-              true))) ; Test Success: All ops are runned succesfully!
-        server (main/close! server)]
-    ret))
+              (if (= expect actual)
+                (recur next-state (rest ops))
+                false)) ; Test Failed!
+            true))) ; Test Success: All ops are runned succesfully!
+      (finally (main/close! server)))))
 
 ;;;
 (comment
