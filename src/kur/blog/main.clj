@@ -37,6 +37,7 @@
       (update :monitor monitor/close!))
   (println "server closed!"))
 
+;;;
 (comment
   (server {1 2 3 4})
   (def s (server :md-dir "test/fixture/blog-v1-md"

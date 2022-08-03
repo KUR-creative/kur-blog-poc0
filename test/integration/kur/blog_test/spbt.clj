@@ -70,9 +70,19 @@
     :n-publics {:next-state state
                 :expect (count (filter #(-> % val ::post/public?) state))}))
 
-(defn run-actual [op]
+(defn md-file-path [op md-dir]
+  (let [{id :id {pub? ::post/public? title ::post/title} :post} op
+        meta-str (if pub? "+" (rand-nth ["-" nil]))]
+    (str (fs/path md-dir (post/parts->fname {::post/id id
+                                             ::post/meta-str meta-str
+                                             ::post/title title})))))
+
+(defn create-md-post [op md-dir]
+  (spit (md-file-path op md-dir) (-> op :post ::md-text)))
+
+(defn run-actual [op server]
   (case (:kind op)
-    :create :no-check
+    :create (do (create-md-post op (:md-dir server)) :no-check)
     :delete :no-check
     :n-publics 0))
 
@@ -88,7 +98,7 @@
           (loop [state {}, ops operations]
             (if-let [op (first ops)]
               (let [{:keys [next-state expect]} (run-model state op)
-                    actual (run-actual op)]
+                    actual (run-actual op server)]
                 ;(prn op "\n" expect actual (= expect actual))
                 (if (= expect actual)
                   (recur next-state (rest ops))
@@ -131,4 +141,10 @@
   ;(run-model state (last (g/sample (gen-ops state) 20)))
   ;(model-test)
 
+  (run-actual {:id "As7001010859",
+               :kind :create,
+               :post {:kur.blog.post/public? true,
+                      :kur.blog.post/title "asdf",
+                      :kur.blog-test.spbt/md-text "꽊"}}
+              {:md-dir "test/fixture/post-md"})
   (model-test))
