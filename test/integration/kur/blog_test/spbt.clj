@@ -78,11 +78,11 @@
 
 ;;; Tests
 (defspec model-test 100
-  (let [s (main/server :md-dir "test/fixture/blog-v1-md"
-                       :html-dir "test/fixture/blog-v1-html/"
-                       :fs-wait-ms 100
-                       :port 8080)
-        s (main/start! s)
+  (let [server (main/server :md-dir "test/fixture/post-md"
+                            :html-dir "test/fixture/post-html"
+                            :fs-wait-ms 100
+                            :port 8080)
+        server (main/start! server)
         ret
         (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
           (loop [state {}, ops operations]
@@ -94,7 +94,7 @@
                   (recur next-state (rest ops))
                   false)) ; Test Failed!
               true))) ; Test Success: All ops are runned succesfully!
-        s (main/close! s)]
+        server (main/close! server)]
     ret))
 
 ;;;
