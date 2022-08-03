@@ -2,6 +2,7 @@
   (:require [babashka.fs :as fs]
             [clojure.spec.alpha :as s]))
 
+;;;
 (s/def ::file-name ;; not a root
   (s/and string? #(not (#{"" "." ".."} %)) #(not (.contains % "/"))))
 
@@ -14,3 +15,9 @@
   (s/and string? #(not (.contains % "/")) #(not= (first %) \.)))
 
 (s/def ::existing-path (s/and ::path fs/exists?))
+
+;;;
+(defn delete-all-except-gitkeep [dir]
+  (->> (fs/list-dir dir)
+       (remove #(= (fs/file-name %) ".gitkeep"))
+       (run! fs/delete)))
