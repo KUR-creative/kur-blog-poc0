@@ -61,13 +61,15 @@
                      :create (assoc state (:id op) (:post op))
                      :delete (dissoc state (:id op)))]
     {:next-state next-state
-     :expect (if (#{:create :delete} (:kind op)) ;; ret = #public-posts
-               (->> (vals next-state)
-                    (filter ::post/public?) count)
-               (throw (Exception. "read result (not implemented)")))}))
+     :expect
+     (case (:kind op)
+       ;:read (->> (vals next-state) (filter ::post/public?) count)
+       :create :no-check
+       :delete :no-check
+       (throw (Exception. "read result (not implemented)")))}))
 
 (defn run-actual [op]
-  0)
+  :no-check)
 
 ;;; Tests
 (defspec model-test 100
