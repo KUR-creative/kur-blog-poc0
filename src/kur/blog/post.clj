@@ -87,13 +87,14 @@
   {"+" true})
 
 (defn file-info [path]
+  (def path path)
   (if (s/valid? ::file-name (str path)) ; Check stricter? p in md dir? (fs/exists? path)
     (let [info (-> path fs/file-name fname->parts)
           exists? (fs/exists? path)]
       (cond-> (assoc info
                      ::public? (public? (::meta-str info))
-                     ::path (str path)
-                     ::exists? exists?)
+                     ;::exists? exists?
+                     ::path (str path))
         exists? (assoc ::last-modified-millis
                        (-> path
                            fs/last-modified-time
