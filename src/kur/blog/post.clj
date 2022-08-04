@@ -124,28 +124,23 @@
   (s/explain ::file-name "kur1234567890.md")
   (s/explain ::file-name "kur1234567890")
 
-  (do
-    (require '[clojure.test.check.clojure-test :refer [defspec]]
-             '[clojure.test.check.properties :refer [for-all] :rename {for-all defp}])
-    (defspec fname-parts-roundtrip-test 1000
-      (defp [parts (s/gen ::file-name-parts)]
-        (= parts (fname->parts (parts->fname parts)))))
-    (fname-parts-roundtrip-test))
-
-  (require '[clojure.test :refer [is]])
-  (is (= (file-info "not-exists") {}))
-
-  (mapv file-info (fs/list-dir "test/fixture/blog-v1-md"))
+  (mapv file-info (sg/sample (s/gen ::file-name) 20))
   #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
 
   (def info {:id "k1234567890"})
 
+  (require '[clojure.test :refer [is]])
   (is (thrown? AssertionError (happened nil nil)))
   [(happened nil info) ;; create
    (happened info nil) ;; delete
    (happened info info) ;; as is
    (happened info (assoc info ::public? true)) ;; update
    ])
+
+(do (require '[clojure.test :refer [run-all-tests]])
+    (println '----------------------------------------------------)
+    #_(run-all-tests #"kur\.blog(.*-test|-test.*)") ;; mine all
+    (run-all-tests #"kur\..*-test")) ;; only units
 
 #_(str/join " " ;; To know used characters
             (->> (fs/list-dir "/home/dev/outer-brain/thinks/")

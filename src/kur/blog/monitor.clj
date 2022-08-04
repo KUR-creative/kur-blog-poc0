@@ -23,7 +23,7 @@
 
 ;;
 (defn monitor
-  "Return monitor entity from config" ;TODO: Add writer fn or something
+  "Return monitor entity from config"
   [wait-ms request-fn monitor-dir & more-dirs]
   (let [ch (async/chan)]
     {::event-chan ch
