@@ -32,6 +32,9 @@
   (-> server
       (update :monitor monitor/start!)))
 
+(defn num-public-posts [server]
+  0)
+
 (defn close! [server]
   (println "Close server!")
   (-> server

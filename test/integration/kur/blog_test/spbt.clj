@@ -62,7 +62,7 @@
 (defn gen-ops [id:post]
   (g/vector (g/one-of [(gen-create id:post)
                        #_(gen-read id:post)
-                       (gen-delete id:post)
+                       #_(gen-delete id:post)
                        gen-n-publics])))
 
 ;;; Runners
@@ -81,7 +81,7 @@
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
     :delete :no-check
-    :n-publics 0))
+    :n-publics (main/num-public-posts server)))
 
 ;;; Tests
 (defspec model-test 100
