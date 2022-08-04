@@ -9,7 +9,7 @@
   {:paths paths
    :handler (fn [_ e] (async/put! chan e))})
 
-(defn loop! [wait-ms chan]
+(defn loop! [request-fn wait-ms chan] ;; TODO: timeout-ms event-chan
   (async/go-loop [got-event? false]
     (let [t (async/timeout wait-ms)]
       (async/alt!
@@ -18,6 +18,7 @@
                     (recur true)))
         t (do (when got-event?
                 (println "Timed out. Act upon events!")
+                (request-fn)
                 (println "events are resolved."))
               (recur false))))))
 
@@ -33,12 +34,14 @@
      ::running? false
      ::closed? false}))
 
-(defn start!
+(defn start! ;; TODO: destructuring
   "Start monitor and return started monitor. Idempotent fn."
   [monitor]
   (when-not (::closed? monitor)
     (if-not (::running? monitor)
-      (let [go-loop (loop! (::wait-ms monitor) (::event-chan monitor))
+      (let [go-loop (loop! (::request-fn monitor)
+                           (::wait-ms monitor)
+                           (::event-chan monitor))
             watch (hawk/watch! [(::watch-spec monitor)])]
         (assoc monitor ::watch watch ::go-loop go-loop ::running? true))
       monitor)))
