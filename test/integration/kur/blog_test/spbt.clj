@@ -15,12 +15,17 @@
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]))
 
 ;;; Generators and Specs
-(s/def ::md-text
-  (s/with-gen string?
-    #(string-from-regexes ascii* common-whitespace* hangul*)))
+(def gen-md-text
+  (string-from-regexes ascii* common-whitespace* hangul*))
 
-(s/def ::post (s/keys :req [::post/public? ::post/title ::md-text]))
-(s/def ::id:post (s/map-of ::post/id ::post :min-count 1))
+(defn gen-id:post [dir]
+  (g/let [num-posts (g/such-that #(> % 0) g/nat)
+          paths (g/vector (g/fmap #(str (fs/path dir %))
+                                  (s/gen ::post/file-name)) num-posts)
+          md-texts (g/vector gen-md-text num-posts)]
+    (let [post-infos (map post/file-info paths)]
+      (zipmap (map ::post/id post-infos)
+              (map #(assoc %1 :md-text %2) post-infos md-texts)))))
 
 (defn url [scheme ip port path]
   (str scheme "://" ip ":" port "/" path))
@@ -71,19 +76,10 @@
     :n-publics {:next-state state
                 :expect (count (filter #(-> % val ::post/public?) state))}))
 
-(defn md-file-path [op md-dir]
-  (let [{id :id {pub? ::post/public? title ::post/title} :post} op
-        meta-str (if pub? "+" (rand-nth ["-" nil]))]
-    (str (fs/path md-dir (post/parts->fname {::post/id id
-                                             ::post/meta-str meta-str
-                                             ::post/title title})))))
-
-(defn create-md-post [op md-dir]
-  (spit (md-file-path op md-dir) (-> op :post ::md-text)))
-
 (defn run-actual [op server]
   (case (:kind op)
-    :create (do (create-md-post op (:md-dir server)) :no-check)
+    :create (let [{{path ::post/path md-text :md-text} :post} op]
+              (spit path md-text) :no-check)
     :delete :no-check
     :n-publics 0))
 
@@ -95,7 +91,7 @@
         server (main/start! (main/server :md-dir md-dir :html-dir html-dir
                                          :fs-wait-ms 100 :port 8080))]
     (try
-      (defp [operations (g/bind (s/gen ::id:post) gen-ops)]
+      (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
         (loop [state {}, ops operations]
           (if-let [op (first ops)]
             (let [{:keys [next-state expect]} (run-model state op)
@@ -115,13 +111,10 @@
                    (map #(-> % str slurp set))
                    (apply clojure.set/union) (sort)))
 
-  (def id:post (last (g/sample (s/gen ::id:post))))
-  (def state id:post)
-
   ;;; gens & specs
-  (g/sample (s/gen ::md-text) 30)
-  (g/sample (s/gen ::post) 30)
-  (g/sample (s/gen ::id:post) 10)
+  (g/sample (gen-id:post "noexist") 10)
+  (def id:post (last (g/sample (gen-id:post "noexist"))))
+  (def state id:post)
 
   (url "http" "localhost" 8384 "")
   (g/sample (gen-valid-url id:post) 20)
