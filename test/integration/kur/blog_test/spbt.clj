@@ -81,7 +81,8 @@
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
     :delete :no-check
-    :n-publics (main/num-public-posts server)))
+    :n-publics (do (Thread/sleep (* 2 (:fs-wait-ms server)))
+                   (main/num-public-posts server))))
 
 ;;; Tests
 (defspec model-test 100
@@ -89,7 +90,7 @@
         html-dir "test/fixture/post-html"
         cleanup-files #(delete-all-except-gitkeep md-dir)
         server (main/start! (main/server :md-dir md-dir :html-dir html-dir
-                                         :fs-wait-ms 100 :port 8080))]
+                                         :fs-wait-ms 5 :port 8080))]
     (try
       (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
         (loop [state {}, ops operations]
