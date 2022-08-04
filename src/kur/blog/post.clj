@@ -87,12 +87,17 @@
   {"+" true})
 
 (defn file-info [path]
-  (if (and (fs/exists? path)
-           (s/valid? ::file-name (str path))) ; Check stricter? p in md dir?
-    (let [info (-> path fs/file-name fname->parts)]
-      (assoc info
-             ::public? (public? (::meta-str info))
-             ::last-modified-time (fs/last-modified-time path)))
+  (if (s/valid? ::file-name (str path)) ; Check stricter? p in md dir? (fs/exists? path)
+    (let [info (-> path fs/file-name fname->parts)
+          exists? (fs/exists? path)]
+      (cond-> (assoc info
+                     ::public? (public? (::meta-str info))
+                     ::path (str path)
+                     ::exists? exists?)
+        exists? (assoc ::last-modified-millis
+                       (-> path
+                           fs/last-modified-time
+                           fs/file-time->millis))))
     {}))
 
 (defn happened [old-info new-info]
@@ -124,7 +129,8 @@
   (s/explain ::file-name "kur1234567890.md")
   (s/explain ::file-name "kur1234567890")
 
-  (mapv file-info (sg/sample (s/gen ::file-name) 20))
+  (mapv file-info (map #(str (fs/path "no-exist" %))
+                       (sg/sample (s/gen ::file-name) 20)))
   #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
 
   (def info {:id "k1234567890"})
