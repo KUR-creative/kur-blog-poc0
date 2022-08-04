@@ -101,8 +101,60 @@
                     false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
+        (delete-all-except-gitkeep html-dir)
         (main/close! server)
         result))))
+
+(def operations
+  [{:id "A7001010900",
+    :kind :create,
+    :post
+    {:kur.blog.post/id "A7001010900",
+     :kur.blog.post/meta-str "+",
+     :kur.blog.post/public? true,
+     :kur.blog.post/path "test/fixture/post-md/A7001010900.+.md",
+     :md-text ""}}
+   {:kind :n-publics}
+   {:id "A7001010900",
+    :kind :create,
+    :post
+    {:kur.blog.post/id "A7001010900",
+     :kur.blog.post/meta-str "+",
+     :kur.blog.post/public? true,
+     :kur.blog.post/path "test/fixture/post-md/A7001010900.+.md",
+     :md-text ""}}
+   {:kind :n-publics}
+   {:id "A7001010859",
+    :kind :create,
+    :post
+    {:kur.blog.post/id "A7001010859",
+     :kur.blog.post/meta-str "+",
+     :kur.blog.post/public? true,
+     :kur.blog.post/path "test/fixture/post-md/A7001010859.+.md",
+     :md-text ""}}
+   {:kind :n-publics}])
+
+(def operations
+  [{:id "G7001010900",
+    :kind :create,
+    :post
+    {:kur.blog.post/id "G7001010900",
+     :kur.blog.post/meta-str "+",
+     :kur.blog.post/title "",
+     :kur.blog.post/public? true,
+     :kur.blog.post/path "test/fixture/post-md/G7001010900.+..md",
+     :md-text ""}}
+   {:kind :n-publics}
+   {:id "a7001010900",
+    :kind :create,
+    :post
+    {:kur.blog.post/id "a7001010900",
+     :kur.blog.post/meta-str "+",
+     :kur.blog.post/title "",
+     :kur.blog.post/public? true,
+     :kur.blog.post/path "test/fixture/post-md/a7001010900.+..md",
+     :md-text ""}}
+   {:kind :n-publics}])
 
 ;;;
 (comment

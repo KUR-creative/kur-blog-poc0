@@ -32,8 +32,12 @@
   (-> server
       (update :monitor monitor/start!)))
 
+(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
-  0)
+  #_(def server server)
+  (->> (:html-dir server)
+       fs/list-dir (filter #(re-find #"\.md$" (str %)))
+       count))
 
 (defn close! [server]
   (println "Close server!")
