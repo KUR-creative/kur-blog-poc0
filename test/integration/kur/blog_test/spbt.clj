@@ -88,21 +88,21 @@
 (defspec model-test 100
   (let [md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
-        cleanup-files #(delete-all-except-gitkeep md-dir)
-        server (main/start! (main/server :md-dir md-dir :html-dir html-dir
-                                         :fs-wait-ms 5 :port 8080))]
-    (try
-      (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
-        (loop [state {}, ops operations]
-          (if-let [op (first ops)]
-            (let [{:keys [next-state expect]} (run-model state op)
-                  actual (run-actual op server)]
-              (if (= expect actual)
-                (recur next-state (rest ops))
-                (do (cleanup-files) false))) ; Test Failed!
-            (do (cleanup-files) true)))) ; Test Success: All ops are runned succesfully!
-      (finally (main/close! server)
-               (cleanup-files)))))
+        cfg {:md-dir md-dir :html-dir html-dir :fs-wait-ms 25 :port 8080}]
+    (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
+      (let [server (main/start! (main/server cfg))
+            result
+            (loop [state {}, ops operations]
+              (if-let [op (first ops)]
+                (let [{:keys [next-state expect]} (run-model state op)
+                      actual (run-actual op server)]
+                  (if (= expect actual)
+                    (recur next-state (rest ops))
+                    false)) ; Test Failed!
+                true))] ; Test Success: All ops are runned succesfully!
+        (delete-all-except-gitkeep md-dir)
+        (main/close! server)
+        result))))
 
 ;;;
 (comment
