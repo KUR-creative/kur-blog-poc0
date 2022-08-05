@@ -101,12 +101,7 @@
                            fs/file-time->millis))))
     {}))
 
-(defn happened [old-info new-info]
-  {:pre [(or old-info new-info)]}
-  (cond (nil? old-info)       ::create
-        (nil? new-info)       ::delete
-        (= old-info new-info) ::as-is
-        :else                 ::update))
+
 
 ;;
 (comment
@@ -132,17 +127,7 @@
 
   (mapv file-info (map #(str (fs/path "no-exist" %))
                        (sg/sample (s/gen ::file-name) 20)))
-  #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md")
-
-  (def info {:id "k1234567890"})
-
-  (require '[clojure.test :refer [is]])
-  (is (thrown? AssertionError (happened nil nil)))
-  [(happened nil info) ;; create
-   (happened info nil) ;; delete
-   (happened info info) ;; as is
-   (happened info (assoc info ::public? true)) ;; update
-   ])
+  #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md"))
 
 (do (require '[clojure.test :refer [run-all-tests]])
     (println '----------------------------------------------------)
