@@ -133,11 +133,6 @@
                        (sg/sample (s/gen ::file-name) 20)))
   #_(def path "test/fixture/blog-v1-md/kur2004250001.-.오버 띵킹의 함정을 조심하라.md"))
 
-(do (require '[clojure.test :refer [run-all-tests]])
-    (println '----------------------------------------------------)
-    #_(run-all-tests #"kur\.blog(.*-test|-test.*)") ;; mine all
-    (run-all-tests #"kur\..*-test")) ;; only units
-
 #_(str/join " " ;; To know used characters
             (->> (fs/list-dir "/home/dev/outer-brain/thinks/")
                  (map fs/file-name) (map set)
