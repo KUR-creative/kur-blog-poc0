@@ -4,10 +4,6 @@
             [kur.blog.post :as post]
             [kur.blog.state :as state]))
 
-(def updater {::state/state (atom {})  ;; TODO: REMOVE!
-              ::in-dirs ["test/fixture/blog-v1-md/"]
-              ::out-dirs ["test/fixture/post-html"]})
-
 ;;;
 (defn updater [state in-dirs out-dirs]
   {::state/state state ::in-dirs in-dirs ::out-dirs out-dirs})
@@ -15,17 +11,13 @@
 (defn update! [updater]
   (let [{state ::state/state
          in-dirs ::in-dirs out-dirs ::out-dirs} updater
-        new-state (apply post/id:file-info in-dirs)]))
-
-#_(let [{state ::state/state
-         in-dirs ::in-dirs out-dirs ::out-dirs} updater
-        src-posts (md-posts (first in-dirs))
-        src-paths (map #(::post/path (val %)) src-posts)
-        dst-paths (->> src-posts
-                       (map #(post/parts->fname (val %)))
-                       (map #(str (fs/path (first out-dirs) %))))]
-    (run! (fn [[src dst]] (fs/copy src dst))
-          (map vector src-paths dst-paths)))
+        old @state, new (apply post/id:file-info in-dirs)
+        happeneds (state/happeneds old new)]
+    (reset! state (state/next-state old new happeneds))))
+#_(def updater {::state/state (atom {"kur2205182112" {}
+                                     "kur2205182113" {}})
+                ::in-dirs ["test/fixture/blog-v1-md/"]
+                ::out-dirs ["test/fixture/post-html"]})
 
 ;;;
 (comment
