@@ -18,17 +18,18 @@
   {::in-dirs in-dirs
    ::out-dirs out-dirs})
 
+#_(def updater {::in-dirs ["test/fixture/blog-v1-md/"]
+                ::out-dirs ["test/fixture/post-html"]})
 (defn update! [updater]
-  #_(def updater {::in-dirs ["test/fixture/blog-v1-md/"]
-                  ::out-dirs ["test/fixture/post-html"]})
-  (let [{in-dirs ::in-dirs out-dirs ::out-dirs} updater
-        src-posts (md-posts (first in-dirs))
-        src-paths (map #(::post/path (val %)) src-posts)
-        dst-paths (->> src-posts
-                       (map #(post/parts->fname (val %)))
-                       (map #(str (fs/path (first out-dirs) %))))]
-    (run! (fn [[src dst]] (fs/copy src dst))
-          (map vector src-paths dst-paths))))
+
+  #_(let [{in-dirs ::in-dirs out-dirs ::out-dirs} updater
+          src-posts (md-posts (first in-dirs))
+          src-paths (map #(::post/path (val %)) src-posts)
+          dst-paths (->> src-posts
+                         (map #(post/parts->fname (val %)))
+                         (map #(str (fs/path (first out-dirs) %))))]
+      (run! (fn [[src dst]] (fs/copy src dst))
+            (map vector src-paths dst-paths))))
 
 ;;;
 (comment

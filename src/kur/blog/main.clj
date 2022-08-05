@@ -28,19 +28,20 @@
     (assoc config :updater updater :monitor monitor)))
 
 (defn start! [server]
-  (println "Start server!")
+  #_(println "Start server!")
   (-> server
       (update :monitor monitor/start!)))
 
-(require '[babashka.fs :as fs])
+#_(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
+  0
   #_(def server server)
-  (->> (:html-dir server)
-       fs/list-dir (filter #(re-find #"\.md$" (str %)))
-       count))
+  #_(->> (:html-dir server)
+         fs/list-dir (filter #(re-find #"\.md$" (str %)))
+         count))
 
 (defn close! [server]
-  (println "Close server!")
+  #_(println "Close server!")
   (-> server
       (update :monitor monitor/close!)))
 
