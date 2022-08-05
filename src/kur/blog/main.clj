@@ -4,7 +4,8 @@
    ;[clojure.core.async :as async]
    [hawk.core :as hawk]
    [kur.blog.monitor :as monitor]
-   [kur.blog.updater :as updater]))
+   [kur.blog.updater :as updater]
+   [kur.blog.post :as post]))
 
 (defn server
   "Create server with configuration.
@@ -26,7 +27,7 @@
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
                                  md-dir)]
-    (assoc config :updater updater :monitor monitor)))
+    (assoc config :state state :updater updater :monitor monitor)))
 
 (defn start! [server]
   #_(println "Start server!")
@@ -35,7 +36,7 @@
 
 #_(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
-  0
+  (count (filter #(::post/public? (val %)) @(:state server)))
   #_(def server server)
   #_(->> (:html-dir server)
          fs/list-dir (filter #(re-find #"\.md$" (str %)))

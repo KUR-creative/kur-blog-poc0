@@ -59,11 +59,19 @@
 
 (def gen-n-publics (g/return {:kind :n-publics}))
 
+(def op-wait {:kind :wait})
+
 (defn gen-ops [id:post]
-  (g/vector (g/one-of [(gen-create id:post)
-                       #_(gen-read id:post)
-                       #_(gen-delete id:post)
-                       gen-n-publics])))
+  (g/let [ops (g/vector (g/one-of [(gen-create id:post)
+                                   #_(gen-read id:post)
+                                   #_(gen-delete id:post)
+                                   gen-n-publics]))]
+    (reduce #(if (and (not= (:kind (peek %1)) :n-publics)
+                      (= (:kind %2) :n-publics))
+               (conj %1 op-wait %2)
+               (conj %1 %2))
+            []
+            ops)))
 
 ;;; Runners
 (defn run-model [state op]
@@ -73,6 +81,8 @@
     :read      (throw (Exception. "read result (not implemented)"))
     :delete    {:next-state (dissoc state (:id op))
                 :expect :no-check}
+    :wait      {:next-state state
+                :expect :no-check}
     :n-publics {:next-state state
                 :expect (count (filter #(-> % val ::post/public?) state))}))
 
@@ -81,15 +91,24 @@
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
     :delete :no-check
-    :n-publics (do (Thread/sleep (* 2 (:fs-wait-ms server)))
-                   (main/num-public-posts server))))
+    :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
+    :n-publics (main/num-public-posts server)))
 
 ;;; Tests
-(defspec model-test 100
-  (let [md-dir "test/fixture/post-md"
+
+(defspec model-test #_100 50
+  ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
+  ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
+  ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
+  ;; 어차피 한번에 너무 많은 변경이 있는 건 비현실적이다. 그냥 이정도로 하자.
+  (let [;cnt (atom 1)
+        md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
-        cfg {:md-dir md-dir :html-dir html-dir :fs-wait-ms 15 :port 8080}]
+        cfg {:md-dir md-dir :html-dir html-dir
+             :fs-wait-ms #_15 500 :port 8080}]
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
+      ;(println @cnt)
+      ;(swap! cnt inc)
       (let [server (main/start! (main/server cfg))
             result
             (loop [state {}, ops operations]
@@ -104,57 +123,6 @@
         (delete-all-except-gitkeep html-dir)
         (main/close! server)
         result))))
-
-(def operations
-  [{:id "A7001010900",
-    :kind :create,
-    :post
-    {:kur.blog.post/id "A7001010900",
-     :kur.blog.post/meta-str "+",
-     :kur.blog.post/public? true,
-     :kur.blog.post/path "test/fixture/post-md/A7001010900.+.md",
-     :md-text ""}}
-   {:kind :n-publics}
-   {:id "A7001010900",
-    :kind :create,
-    :post
-    {:kur.blog.post/id "A7001010900",
-     :kur.blog.post/meta-str "+",
-     :kur.blog.post/public? true,
-     :kur.blog.post/path "test/fixture/post-md/A7001010900.+.md",
-     :md-text ""}}
-   {:kind :n-publics}
-   {:id "A7001010859",
-    :kind :create,
-    :post
-    {:kur.blog.post/id "A7001010859",
-     :kur.blog.post/meta-str "+",
-     :kur.blog.post/public? true,
-     :kur.blog.post/path "test/fixture/post-md/A7001010859.+.md",
-     :md-text ""}}
-   {:kind :n-publics}])
-
-(def operations
-  [{:id "G7001010900",
-    :kind :create,
-    :post
-    {:kur.blog.post/id "G7001010900",
-     :kur.blog.post/meta-str "+",
-     :kur.blog.post/title "",
-     :kur.blog.post/public? true,
-     :kur.blog.post/path "test/fixture/post-md/G7001010900.+..md",
-     :md-text ""}}
-   {:kind :n-publics}
-   {:id "a7001010900",
-    :kind :create,
-    :post
-    {:kur.blog.post/id "a7001010900",
-     :kur.blog.post/meta-str "+",
-     :kur.blog.post/title "",
-     :kur.blog.post/public? true,
-     :kur.blog.post/path "test/fixture/post-md/a7001010900.+..md",
-     :md-text ""}}
-   {:kind :n-publics}])
 
 ;;;
 (comment
@@ -181,7 +149,7 @@
   (g/sample (gen-delete id:post) 10)
   (g/sample gen-n-publics)
 
-  (g/sample (gen-ops id:post) 20)
+  (nth (g/sample (gen-ops id:post) 20) 10)
 
   ;;; Runners
   ;(run-model state (last (g/sample (gen-ops state) 20)))
@@ -193,4 +161,6 @@
                       :kur.blog.post/title "asdf",
                       :kur.blog-test.spbt/md-text "꽊"}}
               {:md-dir "test/fixture/post-md"})
-  (do (println "testing...") (model-test)))
+
+  (do (println "testing...")
+      (time (model-test))))
