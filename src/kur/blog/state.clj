@@ -16,3 +16,9 @@
   (let [all-ks (apply conj (set (keys old)) (keys new))]
     (zipmap all-ks
             (map happened (map old all-ks) (map new all-ks)))))
+
+(defn next-state [old new happeneds]
+  (let [deleted-keys (->> happeneds
+                          (filter #(= (val %) ::delete))
+                          (map #(key %)))]
+    (apply dissoc (merge old new) deleted-keys)))
