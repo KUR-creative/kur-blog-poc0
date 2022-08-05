@@ -87,7 +87,6 @@
   {"+" true})
 
 (defn file-info [path]
-  (def path path)
   (if (s/valid? ::file-name (str path)) ; Check stricter? p in md dir? (fs/exists? path)
     (let [info (-> path fs/file-name fname->parts)
           exists? (fs/exists? path)]
@@ -101,7 +100,12 @@
                            fs/file-time->millis))))
     {}))
 
-
+(defn id:file-info [dir & dirs]
+  (let [infos (->> (fs/list-dirs (cons dir dirs) "*")
+                   (map file-info) (filter seq))]
+    (zipmap (map ::id infos) infos)))
+#_(id:file-info "test/fixture/blog-v1-md" "test/fixture/blog-v1-html")
+#_(id:file-info "test/fixture/blog-v1-md" "test/fixture/blog-v1-md")
 
 ;;
 (comment
