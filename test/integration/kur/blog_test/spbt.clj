@@ -88,7 +88,7 @@
 (defspec model-test 100
   (let [md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
-        cfg {:md-dir md-dir :html-dir html-dir :fs-wait-ms 25 :port 8080}]
+        cfg {:md-dir md-dir :html-dir html-dir :fs-wait-ms 15 :port 8080}]
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
       (let [server (main/start! (main/server cfg))
             result
@@ -193,4 +193,4 @@
                       :kur.blog.post/title "asdf",
                       :kur.blog-test.spbt/md-text "꽊"}}
               {:md-dir "test/fixture/post-md"})
-  (model-test))
+  (do (println "testing...") (model-test)))
