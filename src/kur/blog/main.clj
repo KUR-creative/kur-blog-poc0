@@ -21,7 +21,8 @@
                requests UPDATER to write/update/delete posts
    port        An port to open to clients"
   [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
-  (let [updater (updater/updater [md-dir] [html-dir])
+  (let [state (atom {})
+        updater (updater/updater state [md-dir] [html-dir])
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
                                  md-dir)]

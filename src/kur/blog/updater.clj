@@ -1,7 +1,8 @@
 (ns kur.blog.updater
   "Updater write/update/delete html post from md using wrtie functions"
   (:require [babashka.fs :as fs]
-            [kur.blog.post :as post]))
+            [kur.blog.post :as post]
+            [kur.blog.state :as state]))
 
 (defn md-posts [md-dir]
   (let [publics (->> (fs/list-dir md-dir)
@@ -14,9 +15,8 @@
             (map post/happened (map old-m all-ks) (map new-m all-ks)))))
 
 ;;;
-(defn updater [in-dirs out-dirs]
-  {::in-dirs in-dirs
-   ::out-dirs out-dirs})
+(defn updater [state in-dirs out-dirs]
+  {::state/state state ::in-dirs in-dirs ::out-dirs out-dirs})
 
 #_(def updater {::in-dirs ["test/fixture/blog-v1-md/"]
                 ::out-dirs ["test/fixture/post-html"]})
