@@ -101,14 +101,16 @@
   ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
   ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
   ;; 어차피 한번에 너무 많은 변경이 있는 건 비현실적이다. 그냥 이정도로 하자.
-  (let [;cnt (atom 1)
+  (let [cnt (atom 1)
         md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
         cfg {:md-dir md-dir :html-dir html-dir
              :fs-wait-ms #_15 500 :port 8080}]
+    (delete-all-except-gitkeep md-dir)
+    (delete-all-except-gitkeep html-dir)
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
-      ;(println @cnt)
-      ;(swap! cnt inc)
+      (println @cnt '/ '50)
+      (swap! cnt inc)
       (let [server (main/start! (main/server cfg))
             result
             (loop [state {}, ops operations]
