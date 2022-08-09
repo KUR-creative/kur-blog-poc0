@@ -63,7 +63,7 @@
 
 (defn gen-ops [id:post]
   (g/let [ops (g/vector (g/one-of [(gen-create id:post)
-                                   #_(gen-read id:post)
+                                   (gen-read id:post)
                                    #_(gen-delete id:post)
                                    gen-n-publics]))]
     (reduce #(if (and (not= (:kind (peek %1)) :n-publics)
@@ -78,7 +78,8 @@
   (case (:kind op)
     :create    {:next-state (assoc state (:id op) (:post op))
                 :expect :no-check}
-    :read      (throw (Exception. "read result (not implemented)"))
+    :read      {:next-state state
+                :expect (-> op :post :md-text)}
     :delete    {:next-state (dissoc state (:id op))
                 :expect :no-check}
     :wait      {:next-state state
@@ -90,6 +91,7 @@
   (case (:kind op)
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
+    :read :no-check
     :delete :no-check
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
     :n-publics (main/num-public-posts server)))
