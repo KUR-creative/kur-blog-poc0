@@ -95,8 +95,10 @@
     :n-publics (main/num-public-posts server)))
 
 ;;; Tests
+;(def test-times 50)
+(def test-times 10)
 
-(defspec model-test #_100 50
+(defspec model-test #_100 test-times
   ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
   ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
   ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
@@ -109,7 +111,7 @@
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
-      (println @cnt '/ '50)
+      (println @cnt '/ test-times)
       (swap! cnt inc)
       (let [server (main/start! (main/server cfg))
             result
