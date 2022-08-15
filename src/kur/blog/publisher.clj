@@ -2,6 +2,8 @@
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
             [kur.blog.post :as post]
+            [kur.blog.state :as state]
+            [ring.adapter.jetty :refer [run-jetty]]
             [ring.util.response :as resp]))
 
 (defn url-path-set
@@ -27,11 +29,33 @@
 
 (def app send-file)
 
+;;
+(defn publisher [state jetty-opts] ;; TODO: set ssl, later..
+  (merge {::state/state state
+          :running? false :closed? false} ; State machine
+         (cond-> jetty-opts ; jetty-opts (my) defaults
+           (nil? (:join? jetty-opts)) (assoc :join? false))))
+
+(defn start! [pub] ; TODO: Refactor common state machine(monitor)
+  (when-not (:closed? pub)
+    (if-not (:running? pub)
+      (let [jetty-keys [:port :join?]]
+        (assoc pub ; TODO? pub also include handler? or not?
+               ::server (run-jetty #'app (select-keys pub jetty-keys))
+               :running? true))
+      pub)))
+
+(defn close! [pub]
+  (when-not (:closed? pub)
+    (if (:running? pub)
+      (do (.stop (::server pub))
+          (assoc pub :running? false :closed? true))
+      pub)))
+
 (comment
 ;(do
-  (require '[ring.adapter.jetty :as r]
-           '[org.httpkit.client :as http]);
-  (def s (r/run-jetty #'app {:port 8080 :join? false}));
+  (require '[org.httpkit.client :as http]);
+  (def s (run-jetty #'app {:port 8080 :join? false}));
   (.stop s);
   (.start s);
 
@@ -41,17 +65,35 @@
               "http://localhost:8080/kur2207111708"]
         futures (doall (map #(http/get % {:as :text}) urls))]
     (doseq [resp futures]
-      (println (-> @resp :opts :url) " body: " (count (:body @resp))))
+      (println (-> @resp :opts :url) " body: " (count (:body @resp)))))
 
-    #_(do ;; create htmls
-        (def md-fixture-dir "test/fixture/blog-v1-md")
-        (def html-dir "test/fixture/blog-v1-html/")
+  (def state (post/id:file-info "test/fixture/blog-v1-md"))
+  #_(do ;; create htmls
+      (def md-fixture-dir "test/fixture/blog-v1-md")
+      (def html-dir "test/fixture/blog-v1-html/")
 
-        (def post-md-paths (fs/list-dir md-fixture-dir))
-        (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
-        (def post-html-paths
-          (map #(fs/path html-dir (str % ".html")) post-names))
+      (def post-md-paths (fs/list-dir md-fixture-dir))
+      (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
+      (def post-html-paths
+        (map #(fs/path html-dir (str % ".html")) post-names))
 
-        (require '[kur.blog.write :refer [write-post]])
-        (doseq [[src dst] (map vector post-md-paths post-html-paths)]
-          (write-post src dst))))
+      (require '[kur.blog.write :refer [write-post]])
+      (doseq [[src dst] (map vector post-md-paths post-html-paths)]
+        (write-post src dst))))
+
+(comment ;do ;; TODO: Refactor common state machine(monitor) with test
+  (require '[clojure.test :refer [is]])
+  (def pub (publisher {} {:port 8080}))
+  (is (and (not (:running? pub)) (not (:closed? pub))))
+
+  (def pub (start! pub))
+  (is (and      (:running? pub)  (not (:closed? pub))))
+  (def old-pub pub)
+
+  (def pub (start! pub))
+  (is (and      (:running? pub)  (not (:closed? pub))))
+  (def idempotent-pub pub)
+  (is (= old-pub idempotent-pub))
+
+  (def pub (close! pub))
+  (is (and (not (:running? pub))      (:closed? pub))))

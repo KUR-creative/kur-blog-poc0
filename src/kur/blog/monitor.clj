@@ -72,6 +72,7 @@
   (monitor 100 #(prn "no-op")
            "test/fixture/blog-v1-md" "test/fixture/blog-v1-html"))
 
+;; TODO: Refactor common state machine(publisher) with test
 (comment (require '[clojure.test :refer [is]])
          (def m (monitor 1500 #(prn "no-op") "test/fixture/blog-v1-md"))
          (is (and (not (::running? m)) (not (::closed? m))))
