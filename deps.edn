@@ -1,22 +1,24 @@
 {:paths ["src" "test/unit" "test/integration"]
- :deps {;; Fundamental
-        medley/medley {:mvn/version "1.4.0"}
-        org.clojure/clojure {:mvn/version "1.11.1"}
-        org.clojure/core.async {:mvn/version "1.5.648"}
+ :deps
+ {;; Fundamental
+  medley/medley {:mvn/version "1.4.0"}
+  org.clojure/clojure {:mvn/version "1.11.1"}
+  org.clojure/core.async {:mvn/version "1.5.648"}
 
-        ;; File system
-        babashka/fs {:mvn/version "0.1.6"}
-        hawk/hawk {:mvn/version "0.2.11"}
+  ;; File system
+  babashka/fs {:mvn/version "0.1.6"}
+  hawk/hawk {:mvn/version "0.2.11"}
 
-        ;; Html rendering
-        com.eclipsesource.j2v8/j2v8_linux_x86_64 {:mvn/version "4.8.0"}
-        hiccup/hiccup {:mvn/version "1.0.5"}
+  ;; Html rendering
+  com.eclipsesource.j2v8/j2v8_linux_x86_64 {:mvn/version "4.8.0"}
+  hiccup/hiccup {:mvn/version "1.0.5"}
 
-        ;; Server
-        ring-server/ring-server {:mvn/version "0.5.0"}
-        ring/ring {:mvn/version "1.9.5"}
+  ;; Server
+  ring-server/ring-server {:mvn/version "0.5.0"}
+  ring/ring {:mvn/version "1.9.5"}
 
-        ;; Test
-        com.gfredericks/test.chuck {:mvn/version "0.2.13"}
-        org.clojure/test.check {:mvn/version "1.1.1"}
-        }}
+  ;;Test
+  com.gfredericks/test.chuck {:mvn/version "0.2.13"}
+  org.clojure/test.check {:mvn/version "1.1.1"}
+  http-kit/http-kit {:mvn/version "2.6.0"}} ; for HTTP client to test server
+ }

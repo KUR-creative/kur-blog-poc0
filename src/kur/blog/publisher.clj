@@ -29,21 +29,29 @@
 
 (comment
 ;(do
-  (require '[ring.adapter.jetty :as r]);
+  (require '[ring.adapter.jetty :as r]
+           '[org.httpkit.client :as http]);
   (def s (r/run-jetty #'app {:port 8080 :join? false}));
   (.stop s);
   (.start s);
 
+  @(http/get "http://localhost:8080/kur2205182112" {:as :text})
+  (let [urls ["http://localhost:8080/kur2205182112"
+              "http://localhost:8080/kur2206082055"
+              "http://localhost:8080/kur2207111708"]
+        futures (doall (map #(http/get % {:as :text}) urls))]
+    (doseq [resp futures]
+      (println (-> @resp :opts :url) " body: " (count (:body @resp))))
 
-  #_(do ;; create htmls
-      (def md-fixture-dir "test/fixture/blog-v1-md")
-      (def html-dir "test/fixture/blog-v1-html/")
+    #_(do ;; create htmls
+        (def md-fixture-dir "test/fixture/blog-v1-md")
+        (def html-dir "test/fixture/blog-v1-html/")
 
-      (def post-md-paths (fs/list-dir md-fixture-dir))
-      (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
-      (def post-html-paths
-        (map #(fs/path html-dir (str % ".html")) post-names))
+        (def post-md-paths (fs/list-dir md-fixture-dir))
+        (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
+        (def post-html-paths
+          (map #(fs/path html-dir (str % ".html")) post-names))
 
-      (require '[kur.blog.write :refer [write-post]])
-      (doseq [[src dst] (map vector post-md-paths post-html-paths)]
-        (write-post src dst))))
+        (require '[kur.blog.write :refer [write-post]])
+        (doseq [[src dst] (map vector post-md-paths post-html-paths)]
+          (write-post src dst))))
