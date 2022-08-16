@@ -30,6 +30,13 @@
 (def app send-file)
 
 ;;
+(defn publish [state req]
+  (tap> (:uri req))
+  (if-let [info (@state (subs (:uri req) 1))]
+    (resp/file-response (::post/path info))
+    (resp/not-found "ERROR: 404 not found")))
+
+;;
 (defn publisher [state jetty-opts] ;; TODO: set ssl, later..
   (merge {::state/state state
           :running? false :closed? false} ; State machine
@@ -40,8 +47,9 @@
   (when-not (:closed? pub)
     (if-not (:running? pub)
       (let [jetty-keys [:port :join?]]
+        (def handler #(publish (::state/state pub) %))
         (assoc pub ; TODO? pub also include handler? or not?
-               ::server (run-jetty #'app (select-keys pub jetty-keys))
+               ::server (run-jetty #'handler (select-keys pub jetty-keys))
                :running? true))
       pub)))
 
@@ -67,7 +75,6 @@
     (doseq [resp futures]
       (println (-> @resp :opts :url) " body: " (count (:body @resp)))))
 
-  (def state (post/id:file-info "test/fixture/blog-v1-md"))
   #_(do ;; create htmls
       (def md-fixture-dir "test/fixture/blog-v1-md")
       (def html-dir "test/fixture/blog-v1-html/")
@@ -79,11 +86,13 @@
 
       (require '[kur.blog.write :refer [write-post]])
       (doseq [[src dst] (map vector post-md-paths post-html-paths)]
-        (write-post src dst))))
+        (write-post src dst)))
+  (add-tap (bound-fn* prn))
+  (def state (atom (post/id:file-info "test/fixture/blog-v1-md"))))
 
 (comment ;do ;; TODO: Refactor common state machine(monitor) with test
   (require '[clojure.test :refer [is]])
-  (def pub (publisher {} {:port 8080}))
+  (def pub (publisher state {:port 8080}))
   (is (and (not (:running? pub)) (not (:closed? pub))))
 
   (def pub (start! pub))
