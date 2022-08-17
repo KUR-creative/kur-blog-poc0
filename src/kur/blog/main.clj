@@ -5,7 +5,8 @@
    [hawk.core :as hawk]
    [kur.blog.monitor :as monitor]
    [kur.blog.updater :as updater]
-   [kur.blog.post :as post]))
+   [kur.blog.post :as post]
+   [kur.blog.publisher :as publisher]))
 
 (defn server
   "Create server with configuration.
@@ -26,13 +27,17 @@
         updater (updater/updater state [md-dir] [html-dir])
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
-                                 md-dir)]
-    (assoc config :state state :updater updater :monitor monitor)))
+                                 md-dir)
+        publisher (publisher/publisher state {:port port})]
+    (assoc config
+           :state state :updater updater
+           :monitor monitor :publisher publisher)))
 
 (defn start! [server]
   #_(println "Start server!")
   (-> server
-      (update :monitor monitor/start!)))
+      (update :monitor monitor/start!)
+      (update :publisher publisher/start!)))
 
 #_(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
@@ -45,7 +50,8 @@
 (defn close! [server]
   #_(println "Close server!")
   (-> server
-      (update :monitor monitor/close!)))
+      (update :monitor monitor/close!)
+      (update :publisher publisher/close!)))
 
 ;;;
 (comment
