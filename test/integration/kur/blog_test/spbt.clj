@@ -2,6 +2,7 @@
   "Blog Integration Test Using Stateful PBT"
   (:require
    [babashka.fs :as fs]
+   [clojure.java.io :refer [as-url]]
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.test.check.clojure-test :refer [defspec]]
@@ -9,14 +10,14 @@
    [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
    [kur.blog.main :as main]
    [kur.blog.post :as post]
+   [kur.blog.publisher :as publisher]
    [kur.blog.publisher :refer [url-path-set]]
    [kur.util.file-system :refer [delete-all-except-gitkeep]]
    [kur.util.generator :refer [string-from-regexes]]
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
-   [org.httpkit.client :as http]
-   [kur.blog.publisher :as publisher]))
+   [org.httpkit.client :as http]))
 
-(def test-port 3002)
+(def test-port 3003)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -32,7 +33,7 @@
               (map #(assoc %1 :md-text %2) post-infos md-texts)))))
 
 (defn url [scheme ip port path]
-  (str scheme "://" ip ":" port "/" path))
+  (str (as-url (str scheme "://" ip ":" port "/" path))))
 
 (defn gen-valid-url [id:post]
   (g/fmap #(url "http" "localhost" test-port %)
@@ -100,7 +101,7 @@
               (spit path md-text) :no-check)
     :read (do (def resp @(http/get (:url op)))
               (def server server) #_(main/close! server)
-              (:body resp)
+              (if (:error resp) resp (:body resp))
               #_(:body @(http/get (:url op))))
     :delete :no-check
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
