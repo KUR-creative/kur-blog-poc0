@@ -92,7 +92,7 @@
           exists? (fs/exists? path)]
       (cond-> (assoc info
                      ::public? (public? (::meta-str info))
-                     ;::exists? exists?
+                     ;::exists? exists? ;; Comment out - it can cause mismatch (fs != state)
                      ::path (str path))
         exists? (assoc ::last-modified-millis
                        (-> path

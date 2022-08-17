@@ -63,6 +63,7 @@
   (def s (start! s))
   (require '[org.httpkit.client :as http]);
   @(http/get "http://localhost:8080/kur2205182112" {:as :text})
+  @(http/get "http://localhost:8080/404" {:as :text})
   (def s (close! s)))
 
 (do (require '[clojure.test :refer [run-all-tests]])
