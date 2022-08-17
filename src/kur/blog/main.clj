@@ -6,7 +6,8 @@
    [kur.blog.monitor :as monitor]
    [kur.blog.updater :as updater]
    [kur.blog.post :as post]
-   [kur.blog.publisher :as publisher]))
+   [kur.blog.publisher :as publisher]
+   [kur.blog.state :as state]))
 
 (defn server
   "Create server with configuration.
@@ -23,7 +24,7 @@
                requests UPDATER to write/update/delete posts
    port        An port to open to clients"
   [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
-  (let [state (atom {})
+  (let [state (state/state md-dir)
         updater (updater/updater state [md-dir] [html-dir])
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
@@ -55,12 +56,13 @@
 
 ;;;
 (comment
-  (server {1 2 3 4})
   (def s (server :md-dir "test/fixture/blog-v1-md"
                  :html-dir "test/fixture/blog-v1-html/"
                  :fs-wait-ms 1000
                  :port 8080))
   (def s (start! s))
+  (require '[org.httpkit.client :as http]);
+  @(http/get "http://localhost:8080/kur2205182112" {:as :text})
   (def s (close! s)))
 
 (do (require '[clojure.test :refer [run-all-tests]])

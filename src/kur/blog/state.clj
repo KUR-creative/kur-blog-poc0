@@ -5,6 +5,13 @@
 
 (s/def ::state (s/map-of ::post/id map?)) ;TODO? map? = post/file-info
 
+(defn state
+  "Create state"
+  [& dirs]
+  (atom (if (seq dirs)
+          (apply post/id:file-info dirs)
+          {})))
+
 (defn happened [old-info new-info]
   {:pre [(or old-info new-info)]}
   (cond (nil? old-info)       ::create
