@@ -62,19 +62,6 @@
 
 (comment
 ;(do
-  (require '[org.httpkit.client :as http]);
-  (def s (run-jetty #'app {:port 8080 :join? false}));
-  (.stop s);
-  (.start s);
-
-  @(http/get "http://localhost:8080/kur2205182112" {:as :text})
-  (let [urls ["http://localhost:8080/kur2205182112"
-              "http://localhost:8080/kur2206082055"
-              "http://localhost:8080/kur2207111708"]
-        futures (doall (map #(http/get % {:as :text}) urls))]
-    (doseq [resp futures]
-      (println (-> @resp :opts :url) " body: " (count (:body @resp)))))
-
   #_(do ;; create htmls
       (def md-fixture-dir "test/fixture/blog-v1-md")
       (def html-dir "test/fixture/blog-v1-html/")
@@ -88,7 +75,10 @@
       (doseq [[src dst] (map vector post-md-paths post-html-paths)]
         (write-post src dst)))
   (add-tap (bound-fn* prn))
-  (def state (atom (post/id:file-info "test/fixture/blog-v1-md"))))
+  (def state (atom (post/id:file-info "test/fixture/blog-v1-md")))
+
+  (require '[org.httpkit.client :as http]);
+  @(http/get "http://localhost:8080/kur2205182112" {:as :text}))
 
 (comment ;do ;; TODO: Refactor common state machine(monitor) with test
   (require '[clojure.test :refer [is]])
