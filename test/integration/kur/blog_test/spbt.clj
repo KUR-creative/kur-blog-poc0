@@ -17,7 +17,7 @@
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
    [org.httpkit.client :as http]))
 
-(def test-port 3003)
+(def test-port 3010)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -97,10 +97,11 @@
     :create    {:next-state (assoc state (:id op) (:post op))
                 :expect :no-check}
     :read      {:next-state state
-                :expect (let [post (state (:id op))] ;; TODO: if-let
-                          (if post
-                            (:md-text post)
-                            publisher/not-found-body))}
+                :expect (do (def exp (let [post (state (:id op))] ;; TODO: if-let
+                                       (if post
+                                         (:md-text post)
+                                         publisher/not-found-body)))
+                            exp)}
     :delete    {:next-state (dissoc state (:id op))
                 :expect :no-check}
     :wait      {:next-state state
@@ -112,7 +113,7 @@
   (case (:kind op)
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
-    :read (do (def resp @(http/get (:url op)))
+    :read (do (def resp @(http/get (:url op) {:as :text}))
               (def server server) #_(main/close! server)
               (if (:error resp) resp (:body resp))
               #_(:body @(http/get (:url op))))
@@ -149,7 +150,7 @@
                   (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
-                    false)) ; Test Failed!
+                    (throw (Exception. "wtf?")) #_false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
         (delete-all-except-gitkeep html-dir)
