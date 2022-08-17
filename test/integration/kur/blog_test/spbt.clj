@@ -1,27 +1,25 @@
 (ns kur.blog-test.spbt
   "Blog Integration Test Using Stateful PBT"
-  (:require
-   [babashka.fs :as fs]
-   [clojure.java.io :refer [as-url]]
-   [clojure.spec.alpha :as s]
-   [clojure.string :as str]
-   [clojure.test.check.clojure-test :refer [defspec]]
-   [clojure.test.check.generators :as g]
-   [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
-   [kur.blog.main :as main]
-   [kur.blog.post :as post]
-   [kur.blog.publisher :as publisher]
-   [kur.blog.publisher :refer [url-path-set]]
-   [kur.util.file-system :refer [delete-all-except-gitkeep]]
-   [kur.util.generator :refer [string-from-regexes]]
-   [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
-   [org.httpkit.client :as http]
-   [ring.util.codec :refer [url-encode]]))
+  (:require [babashka.fs :as fs]
+            [clojure.spec.alpha :as s]
+            [clojure.string :as str]
+            [clojure.test.check.clojure-test :refer [defspec]]
+            [clojure.test.check.generators :as g]
+            [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
+            [kur.blog.main :as main]
+            [kur.blog.post :as post]
+            [kur.blog.publisher :as publisher :refer [url-path-set]]
+            [kur.util.file-system :refer [delete-all-except-gitkeep]]
+            [kur.util.generator :refer [string-from-regexes]]
+            [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
+            [org.httpkit.client :as http]
+            [ring.util.codec :refer [url-encode]]))
 
 (def test-port 3015)
 
 ;;; Generators and Specs
 (def gen-md-text
+
   (string-from-regexes ascii* common-whitespace* hangul*))
 
 (defn gen-id:post [dir]
