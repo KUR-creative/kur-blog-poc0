@@ -83,7 +83,10 @@
     :create    {:next-state (assoc state (:id op) (:post op))
                 :expect :no-check}
     :read      {:next-state state
-                :expect (-> op :post :md-text)}
+                :expect (let [post (state (:id op))] ;; TODO: if-let
+                          (if post
+                            (:md-text post)
+                            publisher/not-found-body))}
     :delete    {:next-state (dissoc state (:id op))
                 :expect :no-check}
     :wait      {:next-state state
