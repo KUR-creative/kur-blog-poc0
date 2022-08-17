@@ -12,7 +12,11 @@
    [kur.blog.publisher :refer [url-path-set]]
    [kur.util.file-system :refer [delete-all-except-gitkeep]]
    [kur.util.generator :refer [string-from-regexes]]
-   [kur.util.regex :refer [ascii* common-whitespace* hangul*]]))
+   [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
+   [org.httpkit.client :as http]
+   [kur.blog.publisher :as publisher]))
+
+(def test-port 3002)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -31,14 +35,14 @@
   (str scheme "://" ip ":" port "/" path))
 
 (defn gen-valid-url [id:post]
-  (g/fmap #(url "http" "localhost" 8080 %)
+  (g/fmap #(url "http" "localhost" test-port %)
           (g/elements (url-path-set id:post))))
 (defn gen-invalid-url [id:post]
   (->> (s/gen (s/or :i+t (s/cat :i ::post/id :t (s/? ::post/title))
                     :s (s/tuple (s/and string? seq))))
        (g/fmap #(str/join "." %))
        (g/such-that #(not (contains? (url-path-set id:post) %)))
-       (g/fmap #(url "http" "localhost" 8080 %))))
+       (g/fmap #(url "http" "localhost" test-port %))))
 
 ;;; Operations
 (defn gen-create [id:post]
@@ -109,7 +113,7 @@
         md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
         cfg {:md-dir md-dir :html-dir html-dir
-             :fs-wait-ms #_15 500 :port 8080}]
+             :fs-wait-ms #_15 500 :port test-port}]
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]

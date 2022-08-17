@@ -30,11 +30,15 @@
 (def app send-file)
 
 ;;
+(def not-found-body "ERROR: 404 not found")
+
 (defn publish [state req]
   (tap> (:uri req))
+  (def req req)
   (if-let [info (@state (subs (:uri req) 1))]
     (resp/file-response (::post/path info))
-    (resp/not-found "ERROR: 404 not found")))
+    (resp/not-found not-found-body)))
+;(post/fname->parts (subs (:uri req) 1))
 
 ;;
 (defn publisher [state jetty-opts] ;; TODO: set ssl, later..
