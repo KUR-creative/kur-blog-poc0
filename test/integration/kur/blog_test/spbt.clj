@@ -66,17 +66,30 @@
 
 (def op-wait {:kind :wait})
 
+(def query-ops #{:n-publics :read})
+
+(defn insert-waits
+  "Insert op-wait before first element of query-ops. ex)
+   [c c d n n n c c d] -> [c c d W n n n]
+   [c n n n c r r d] -> [c W n n n c W r r d]
+   It resolves timing issue of monitor component."
+  [ops]
+  (reduce #(if (and (not (contains? query-ops (:kind (peek %1))))
+                    (contains? query-ops (:kind %2)))
+             (conj %1 op-wait %2)
+             (conj %1 %2))
+          []
+          ops))
+
 (defn gen-ops [id:post]
   (g/let [ops (g/vector (g/one-of [(gen-create id:post)
                                    (gen-read id:post)
                                    #_(gen-delete id:post)
                                    gen-n-publics]))]
-    (reduce #(if (and (not= (:kind (peek %1)) :n-publics)
-                      (= (:kind %2) :n-publics))
-               (conj %1 op-wait %2)
-               (conj %1 %2))
-            []
-            ops)))
+    (let [ret-ops (insert-waits ops)]
+      (if (= (first ret-ops) op-wait)
+        (rest ret-ops)
+        ret-ops))))
 
 ;;; Runners
 (defn run-model [state op]
@@ -169,6 +182,13 @@
   (g/sample gen-n-publics)
 
   (nth (g/sample (gen-ops id:post) 20) 10)
+
+  (do (def ops (last (g/sample (g/vector (g/one-of [(gen-create id:post)
+                                                    (gen-read id:post)
+                                                    #_(gen-delete id:post)
+                                                    gen-n-publics])))))
+      (prn (map :kind ops))
+      (prn (map :kind (insert-waits ops))))
 
   ;;; Runners
   ;(run-model state (last (g/sample (gen-ops state) 20)))
