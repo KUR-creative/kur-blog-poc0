@@ -98,14 +98,17 @@
   (case (:kind op)
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
-    :read :no-check
+    :read (do (def resp @(http/get (:url op)))
+              (def server server) #_(main/close! server)
+              (:body resp)
+              #_(:body @(http/get (:url op))))
     :delete :no-check
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
     :n-publics (main/num-public-posts server)))
 
 ;;; Tests
-;(def test-times 50)
-(def test-times 10)
+(def test-times 50)
+;(def test-times 10)
 
 (defspec model-test #_100 test-times
   ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
@@ -128,6 +131,8 @@
               (if-let [op (first ops)]
                 (let [{:keys [next-state expect]} (run-model state op)
                       actual (run-actual op server)]
+                  (def actual actual)
+                  (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
                     false)) ; Test Failed!
