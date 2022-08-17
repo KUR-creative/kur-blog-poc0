@@ -15,9 +15,10 @@
    [kur.util.file-system :refer [delete-all-except-gitkeep]]
    [kur.util.generator :refer [string-from-regexes]]
    [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
-   [org.httpkit.client :as http]))
+   [org.httpkit.client :as http]
+   [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3010)
+(def test-port 3015)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -33,7 +34,7 @@
               (map #(assoc %1 :md-text %2) post-infos md-texts)))))
 
 (defn url [scheme ip port path]
-  (str (as-url (str scheme "://" ip ":" port "/" path))))
+  (str scheme "://" ip ":" port "/" (url-encode path)))
 
 (defn gen-valid-url [id:post]
   (g/fmap #(url "http" "localhost" test-port %)
@@ -123,6 +124,7 @@
 
 ;;; Tests
 (def test-times 50)
+;(def test-times 40)
 ;(def test-times 10)
 
 (defspec model-test #_100 test-times
