@@ -119,8 +119,8 @@
               (if (:error resp) resp (:body resp)))
     :delete (let [state (-> server :publisher ::state/state)
                   path (::post/path (@state (:id op)))]
-              (when path
-                (fs/delete path))
+              (def this-path path)
+              (when path (fs/delete-if-exists path))
               :no-check)
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
     :n-publics (main/num-public-posts server)))
