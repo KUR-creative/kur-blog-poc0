@@ -16,7 +16,7 @@
             [org.httpkit.client :as http]
             [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3003)
+(def test-port 3000)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -87,17 +87,18 @@
                                    gen-n-publics]))]
     (let [ret-ops (insert-waits ops)]
       (if (= (first ret-ops) op-wait)
-        (rest ret-ops)
+        (rest ret-ops) ;; Remove head if head = wait
         ret-ops))))
 
 ;;; Runners
 (defn run-model [state op]
+  (def state state)
   (case (:kind op)
     :create    {:next-state (assoc state (:id op) (:post op))
                 :expect :no-check}
     :read      {:next-state state
-                :expect (do (def exp (let [post (state (:id op))] ;; TODO: if-let
-                                       (if post
+                :expect (do (def exp (let [post (state (:id op))]
+                                       (if (::post/public? post)
                                          (:md-text post)
                                          publisher/not-found-body)))
                             exp)}
@@ -114,13 +115,12 @@
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
     :read (do (def resp @(http/get (:url op) {:as :text}))
-              (def server server) #_(main/close! server)
-              (if (:error resp) resp (:body resp))
-              #_(:body @(http/get (:url op))))
+              (def server server)
+              (if (:error resp) resp (:body resp)))
     :delete (let [state (-> server :publisher ::state/state)
                   path (::post/path (@state (:id op)))]
               (when path
-                (fs/delete-if-exists path))
+                (fs/delete path))
               :no-check)
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
     :n-publics (main/num-public-posts server)))
@@ -143,6 +143,7 @@
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
     (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
+      (def operations operations)
       (println @cnt '/ test-times)
       (swap! cnt inc)
       (let [server (main/start! (main/server cfg))
@@ -151,6 +152,7 @@
               (if-let [op (first ops)]
                 (let [{:keys [next-state expect]} (run-model state op)
                       actual (run-actual op server)]
+                  (def this-op op)
                   (def actual actual)
                   (def expect expect)
                   (if (= expect actual)
@@ -209,4 +211,5 @@
               {:md-dir "test/fixture/post-md"})
 
   (do (println "testing...")
+      (main/close! server)
       (time (model-test))))
