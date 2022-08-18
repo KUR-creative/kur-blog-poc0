@@ -9,17 +9,17 @@
             [kur.blog.main :as main]
             [kur.blog.post :as post]
             [kur.blog.publisher :as publisher :refer [url-path-set]]
+            [kur.blog.state :as state]
             [kur.util.file-system :refer [delete-all-except-gitkeep]]
             [kur.util.generator :refer [string-from-regexes]]
             [kur.util.regex :refer [ascii* common-whitespace* hangul*]]
             [org.httpkit.client :as http]
             [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3015)
+(def test-port 3003)
 
 ;;; Generators and Specs
 (def gen-md-text
-
   (string-from-regexes ascii* common-whitespace* hangul*))
 
 (defn gen-id:post [dir]
@@ -83,7 +83,7 @@
 (defn gen-ops [id:post]
   (g/let [ops (g/vector (g/one-of [(gen-create id:post)
                                    (gen-read id:post)
-                                   #_(gen-delete id:post)
+                                   (gen-delete id:post)
                                    gen-n-publics]))]
     (let [ret-ops (insert-waits ops)]
       (if (= (first ret-ops) op-wait)
@@ -109,6 +109,7 @@
                 :expect (count (filter #(-> % val ::post/public?) state))}))
 
 (defn run-actual [op server]
+  (def op op)
   (case (:kind op)
     :create (let [{{path ::post/path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
@@ -116,7 +117,11 @@
               (def server server) #_(main/close! server)
               (if (:error resp) resp (:body resp))
               #_(:body @(http/get (:url op))))
-    :delete :no-check
+    :delete (let [state (-> server :publisher ::state/state)
+                  path (::post/path (@state (:id op)))]
+              (when path
+                (fs/delete-if-exists path))
+              :no-check)
     :wait (do (Thread/sleep (* 2 (:fs-wait-ms server))) :no-check)
     :n-publics (main/num-public-posts server)))
 
@@ -150,7 +155,8 @@
                   (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
-                    (throw (Exception. "wtf?")) #_false)) ; Test Failed!
+                    (throw (Exception. "wtf?"))
+                    #_false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
         (delete-all-except-gitkeep html-dir)
