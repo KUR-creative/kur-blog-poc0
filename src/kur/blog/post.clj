@@ -76,7 +76,9 @@
         ret))))
 
 (s/def ::file-name ;; file name contains extension.
-  (s/with-gen (s/and string? #(re-find #"\.md$" %))
+  (s/with-gen (s/and string?
+                     #(re-find #"\.md$" %)
+                     #(< (count (.getBytes %)) 256)) ; linux
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
 
 ;;; Post information
