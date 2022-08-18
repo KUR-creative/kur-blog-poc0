@@ -19,10 +19,11 @@
 (defn publish [state req]
   (tap> (:uri req))
   (def state state) (def req req)
-  (if-let [info (@state (-> (subs (:uri req) 1)
-                            post/fname->parts ::post/id))]
-    (resp/file-response (::post/path info))
-    (resp/not-found not-found-body)))
+  (let [info (@state (-> (subs (:uri req) 1)
+                         post/fname->parts ::post/id))]
+    (if (::post/public? info)
+      (resp/file-response (::post/path info))
+      (resp/not-found not-found-body))))
 
 ;;
 (defn publisher [state jetty-opts] ;; TODO: set ssl, later..
