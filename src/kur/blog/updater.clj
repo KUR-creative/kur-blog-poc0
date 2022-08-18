@@ -1,7 +1,6 @@
 (ns kur.blog.updater
   "Updater write/update/delete html post from md using wrtie functions"
-  (:require [babashka.fs :as fs]
-            [kur.blog.post :as post]
+  (:require [kur.blog.post :as post]
             [kur.blog.state :as state]))
 
 ;;;

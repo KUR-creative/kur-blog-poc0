@@ -1,13 +1,10 @@
 (ns kur.blog.main
   "Entry point fn and the blog server root component"
-  (:require
-   ;[clojure.core.async :as async]
-   [hawk.core :as hawk]
-   [kur.blog.monitor :as monitor]
-   [kur.blog.updater :as updater]
-   [kur.blog.post :as post]
-   [kur.blog.publisher :as publisher]
-   [kur.blog.state :as state]))
+  (:require [kur.blog.monitor :as monitor]
+            [kur.blog.post :as post]
+            [kur.blog.publisher :as publisher]
+            [kur.blog.state :as state]
+            [kur.blog.updater :as updater]))
 
 (defn server
   "Create server with configuration.
