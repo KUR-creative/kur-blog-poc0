@@ -80,7 +80,7 @@
                      #(re-find #"\.md$" %)
                      #(< (count (.getBytes %)) 256)) ; linux
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
-
+(sg/sample (s/gen (s/with-gen odd? #(sg/int))))
 ;;; Post information
 (s/def ::public? boolean?)
 
@@ -89,9 +89,10 @@
   {"+" true})
 
 (defn file-info [path]
-  (if (s/valid? ::file-name (str path)) ; Check stricter? p in md dir? (fs/exists? path)
-    (let [info (-> path fs/file-name fname->parts)
-          exists? (fs/exists? path)]
+  (let [fname (str (fs/file-name path)) ; Check stricter? p in md dir? (fs/exists? path)
+        info (fname->parts fname)
+        exists? (fs/exists? path)]
+    (if (s/valid? ::file-name fname)
       (cond-> (assoc info
                      ::public? (public? (::meta-str info))
                      ;::exists? exists? ;; Comment out - it can cause mismatch (fs != state)
@@ -99,8 +100,8 @@
         exists? (assoc ::last-modified-millis
                        (-> path
                            fs/last-modified-time
-                           fs/file-time->millis))))
-    {}))
+                           fs/file-time->millis)))
+      {})))
 
 (defn id:file-info [dir & dirs]
   (let [infos (->> (fs/list-dirs (cons dir dirs) "*")

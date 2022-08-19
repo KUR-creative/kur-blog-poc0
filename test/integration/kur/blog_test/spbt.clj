@@ -16,7 +16,7 @@
             [org.httpkit.client :as http]
             [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3000)
+(def test-port 3010)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -27,9 +27,11 @@
           paths (g/vector (g/fmap #(str (fs/path dir %))
                                   (s/gen ::post/file-name)) num-posts)
           md-texts (g/vector gen-md-text num-posts)]
-    (let [post-infos (map post/file-info paths)]
-      (zipmap (map ::post/id post-infos)
-              (map #(assoc %1 :md-text %2) post-infos md-texts)))))
+    (let [post-infos (map post/file-info paths)
+          ret (zipmap (map ::post/id post-infos)
+                      (map #(assoc %1 :md-text %2) post-infos md-texts))]
+      (assert (every? some? (keys ret)) (keys ret))
+      ret)))
 
 (defn url [scheme ip port path]
   (str scheme "://" ip ":" port "/" (url-encode path)))
@@ -130,7 +132,10 @@
 ;(def test-times 40)
 ;(def test-times 10)
 
-(defspec model-test #_100 test-times
+(defspec model-test #_100
+  {:num-tests test-times
+   ;:seed 1660867454029
+   }
   ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
   ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
   ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
@@ -151,7 +156,7 @@
             (loop [state {}, ops operations]
               (if-let [op (first ops)]
                 (let [{:keys [next-state expect]} (run-model state op)
-                      actual (run-actual op server)]
+                      actual (run-actual op state server)]
                   (def this-op op)
                   (def actual actual)
                   (def expect expect)
@@ -164,6 +169,7 @@
         (delete-all-except-gitkeep html-dir)
         (main/close! server)
         result))))
+
 
 ;;;
 (comment
@@ -208,6 +214,7 @@
                :post {:kur.blog.post/public? true,
                       :kur.blog.post/title "asdf",
                       :kur.blog-test.spbt/md-text "꽊"}}
+              {}
               {:md-dir "test/fixture/post-md"})
 
   (do (println "testing...")
