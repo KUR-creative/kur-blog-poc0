@@ -1,4 +1,4 @@
-(ns kur.blog.write
+(ns kur.blog.write ;; TODO: An old ns. Remove!
   "Write functions"
   (:require [babashka.fs :as fs]
             [clojure.string :as str]

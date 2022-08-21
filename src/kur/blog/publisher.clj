@@ -58,11 +58,7 @@
       (def post-md-paths (fs/list-dir md-fixture-dir))
       (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
       (def post-html-paths
-        (map #(fs/path html-dir (str % ".html")) post-names))
-
-      (require '[kur.blog.write :refer [write-post]])
-      (doseq [[src dst] (map vector post-md-paths post-html-paths)]
-        (write-post src dst)))
+        (map #(fs/path html-dir (str % ".html")) post-names)))
   (add-tap (bound-fn* prn))
   (def state (atom (post/id:file-info "test/fixture/blog-v1-md")))
 
