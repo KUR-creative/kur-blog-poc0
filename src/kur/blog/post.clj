@@ -88,6 +88,12 @@
   "meta-str to public? policy"
   {"+" true})
 
+(defn modified?
+  "Is new file-info modified? (w.r.t. old)"
+  [{old ::last-modified-millis} {new ::last-modified-millis}]
+  ((fnil < 0 0) old new))
+;((fnil < 0 0) nil 5)
+
 (defn file-info [path]
   (let [fname (str (fs/file-name path)) ; Check stricter? p in md dir? (fs/exists? path)
         info (fname->parts fname)
