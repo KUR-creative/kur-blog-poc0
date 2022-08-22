@@ -7,6 +7,7 @@
             [clojure.test.check.generators :as g]
             [clojure.test.check.properties :refer [for-all] :rename {for-all defp}]
             [kur.blog.main :as main]
+            [kur.blog.page.post :as page-post]
             [kur.blog.post :as post]
             [kur.blog.publisher :as publisher :refer [url-path-set]]
             [kur.blog.state :as state]
@@ -99,11 +100,12 @@
     :create    {:next-state (assoc state (:id op) (:post op))
                 :expect :no-check}
     :read      {:next-state state
-                :expect (do (def exp (let [post (state (:id op))]
-                                       (if (::post/public? post)
-                                         (:md-text post)
-                                         publisher/not-found-body)))
-                            exp)}
+                :expect
+                (do (def exp (let [post (state (:id op))]
+                               (if (::post/public? post)
+                                 (page-post/post-html (:md-text post))
+                                 publisher/not-found-body)))
+                    exp)}
     :delete    {:next-state (dissoc state (:id op))
                 :expect :no-check}
     :wait      {:next-state state
