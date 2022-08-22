@@ -5,8 +5,8 @@
 
 ;;
 (defonce nodejs-runtime (NodeJS/createNodeJS))
-(def md2x-path "./md2x/out/md2x.js")
-(def md2x (.require nodejs-runtime (io/file md2x-path)))
+(defonce md2x-path "./md2x/out/md2x.js")
+(defonce md2x (.require nodejs-runtime (io/file md2x-path)))
 
 (defn obsidian-html [md]
   (.executeJSFunction md2x "obsidian" (to-array [md])))
