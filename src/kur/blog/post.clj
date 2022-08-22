@@ -26,7 +26,7 @@
 ;;; Post file name parts
 (defn id-info [post-id]
   (let [author-len (- (count post-id) create-time-len)
-        [author create-time]
+        [author create-time] ;; TODO: refactor using subs
         (map #(apply str %) (split-at author-len post-id))]
     {:author (when (s/valid? ::author author) author)
      :create-time (when (s/valid? ::create-time create-time) create-time)}))
@@ -80,7 +80,7 @@
                      #(re-find #"\.md$" %)
                      #(< (count (.getBytes %)) 256)) ; linux
     #(sg/fmap parts->fname (s/gen ::file-name-parts))))
-(sg/sample (s/gen (s/with-gen odd? #(sg/int))))
+
 ;;; Post information
 (s/def ::public? boolean?)
 
@@ -96,7 +96,7 @@
       (cond-> (assoc info
                      ::public? (public? (::meta-str info))
                      ;::exists? exists? ;; Comment out - it can cause mismatch (fs != state)
-                     ::path (str path))
+                     ::md-path (str path))
         exists? (assoc ::last-modified-millis
                        (-> path
                            fs/last-modified-time

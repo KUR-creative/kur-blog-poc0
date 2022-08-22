@@ -103,7 +103,8 @@
                 :expect
                 (do (def exp (let [post (state (:id op))]
                                (if (::post/public? post)
-                                 (page-post/post-html (:md-text post))
+                                 (:md-text post)
+                                 #_(page-post/post-html (:md-text post))
                                  publisher/not-found-body)))
                     exp)}
     :delete    {:next-state (dissoc state (:id op))
@@ -116,12 +117,12 @@
 (defn run-actual [op model-state server]
   (def op op)
   (case (:kind op)
-    :create (let [{{path ::post/path md-text :md-text} :post} op]
+    :create (let [{{path ::post/md-path md-text :md-text} :post} op]
               (spit path md-text) :no-check)
     :read (do (def resp @(http/get (:url op) {:as :text}))
               (def server server)
               (if (:error resp) resp (:body resp)))
-    :delete (let [path (::post/path (model-state (:id op)))]
+    :delete (let [path (::post/md-path (model-state (:id op)))]
               (def del-state @(:state server))
               (def del-path path)
               (when path (fs/delete path))

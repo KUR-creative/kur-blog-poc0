@@ -22,7 +22,7 @@
   (let [info (@state (-> (subs (:uri req) 1)
                          post/fname->parts ::post/id))]
     (if (::post/public? info)
-      (resp/file-response (::post/path info))
+      (resp/file-response (::post/md-path info))
       (resp/not-found not-found-body))))
 
 ;;
@@ -58,7 +58,11 @@
       (def post-md-paths (fs/list-dir md-fixture-dir))
       (def post-names (map #(-> % fs/strip-ext fs/file-name) post-md-paths))
       (def post-html-paths
-        (map #(fs/path html-dir (str % ".html")) post-names)))
+        (map #(fs/path html-dir (str % ".html")) post-names))
+
+
+      (doseq [[src dst] (map vector post-md-paths post-html-paths)]
+        (write-post src dst)))
   (add-tap (bound-fn* prn))
   (def state (atom (post/id:file-info "test/fixture/blog-v1-md")))
 
