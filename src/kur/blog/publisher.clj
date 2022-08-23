@@ -22,7 +22,8 @@
   (let [info (@state (-> (subs (:uri req) 1)
                          post/fname->parts ::post/id))]
     (if (::post/public? info)
-      (resp/file-response (::post/md-path info))
+      (resp/file-response (::post/html-path info)
+                          #_(::post/md-path info))
       (resp/not-found not-found-body))))
 
 ;;

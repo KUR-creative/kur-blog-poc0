@@ -116,6 +116,11 @@
 #_(id:file-info "test/fixture/blog-v1-md" "test/fixture/blog-v1-html")
 #_(id:file-info "test/fixture/blog-v1-md" "test/fixture/blog-v1-md")
 
+(defn html-file-name [file-info] ; policy
+  (str (::id file-info) ".html"))
+(defn html-file-path [parent-path file-info]
+  (str (fs/path parent-path (html-file-name file-info))))
+
 ;;
 (comment
   (id-info "asd1234567890")

@@ -22,7 +22,7 @@
    port        An port to open to clients"
   [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
   (let [state (state/state md-dir)
-        updater (updater/updater state [md-dir] [html-dir])
+        updater (updater/updater state [md-dir] html-dir)
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
                                  md-dir)
@@ -54,7 +54,7 @@
 ;;;
 (comment
   (def s (server :md-dir "test/fixture/blog-v1-md"
-                 :html-dir "test/fixture/blog-v1-html/"
+                 :html-dir "test/fixture/post-html/"
                  :fs-wait-ms 1000
                  :port 8080))
   (def s (start! s))

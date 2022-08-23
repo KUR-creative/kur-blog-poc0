@@ -103,8 +103,7 @@
                 :expect
                 (do (def exp (let [post (state (:id op))]
                                (if (::post/public? post)
-                                 (:md-text post)
-                                 #_(page-post/post-html (:md-text post))
+                                 (page-post/post-html (:md-text post))
                                  publisher/not-found-body)))
                     exp)}
     :delete    {:next-state (dissoc state (:id op))
@@ -165,14 +164,70 @@
                   (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
-                    (throw (Exception. "wtf?"))
-                    #_false)) ; Test Failed!
+                    #_(throw (Exception. "wtf?"))
+                    false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
         (delete-all-except-gitkeep html-dir)
         (main/close! server)
         result))))
 
+(def s-ops [{:id "A7001010900",
+             :kind :create,
+             :post
+             {:kur.blog.post/id "A7001010900",
+              :kur.blog.post/meta-str "+",
+              :kur.blog.post/public? true,
+              :kur.blog.post/md-path "test/fixture/post-md/A7001010900.+.md",
+              :md-text ""}}
+            {:kind :wait}
+            {:kind :read,
+             :url "http://localhost:3010/A7001010900.",
+             :id "A7001010900",
+             :post
+             {:kur.blog.post/id "A7001010900",
+              :kur.blog.post/meta-str "+",
+              :kur.blog.post/public? true,
+              :kur.blog.post/md-path "test/fixture/post-md/A7001010900.+.md",
+              :md-text ""}}])
+
+(defspec model-test1 #_100
+  {:num-tests 1
+   :seed 1661153272533}
+  ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
+  ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
+  ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
+  ;; 어차피 한번에 너무 많은 변경이 있는 건 비현실적이다. 그냥 이정도로 하자.
+  (let [cnt (atom 1)
+        md-dir "test/fixture/post-md"
+        html-dir "test/fixture/post-html"
+        cfg {:md-dir md-dir :html-dir html-dir
+             :fs-wait-ms #_15 500 :port test-port}]
+    (delete-all-except-gitkeep md-dir)
+    (delete-all-except-gitkeep html-dir)
+    (defp [operations (g/return s-ops)]
+      (def operations operations)
+      (println @cnt '/ test-times)
+      (swap! cnt inc)
+      (let [server (main/start! (main/server cfg))
+            result
+            (loop [state {}, ops operations]
+              (if-let [op (first ops)]
+                (let [{:keys [next-state expect]} (run-model state op)
+                      actual (run-actual op state server)]
+                  (def server server)
+                  (def this-op op)
+                  (def actual actual)
+                  (def expect expect)
+                  (if (= expect actual)
+                    (recur next-state (rest ops))
+                    #_(throw (Exception. "wtf?"))
+                    false)) ; Test Failed!
+                true))] ; Test Success: All ops are runned succesfully!
+        (delete-all-except-gitkeep md-dir)
+        (delete-all-except-gitkeep html-dir)
+        (main/close! server)
+        result))))
 
 ;;;
 (comment
@@ -219,7 +274,8 @@
                       :kur.blog-test.spbt/md-text "꽊"}}
               {}
               {:md-dir "test/fixture/post-md"})
-
+  (do (main/close! server)
+      (model-test1))
   (do (println "testing...")
       (main/close! server)
       (time (model-test))))
