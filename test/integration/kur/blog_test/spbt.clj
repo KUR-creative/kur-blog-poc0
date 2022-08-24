@@ -89,9 +89,12 @@
                                    (gen-delete id:post)
                                    gen-n-publics]))]
     (let [ret-ops (insert-waits ops)]
-      (if (= (first ret-ops) op-wait)
-        (rest ret-ops) ;; Remove head if head = wait
-        ret-ops))))
+      (vec (if (= (first ret-ops) op-wait)
+             (rest ret-ops) ;; Remove head if head = wait
+             ret-ops)))))
+
+(defn gen-init-ops [id:post]
+  (g/vector (gen-create id:post)))
 
 ;;; Runners
 (defn run-model [state op]
@@ -149,13 +152,22 @@
              :fs-wait-ms #_15 500 :port test-port}]
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
-    (defp [operations (g/bind (gen-id:post md-dir) gen-ops)]
-      (def operations operations)
+    (defp [[init-ops test-ops]
+           (g/let [id:post (gen-id:post md-dir)
+                   i-ops (gen-init-ops id:post) t-ops (gen-ops id:post)]
+             [i-ops t-ops])]
+      (def init-ops init-ops)
+      (def test-ops test-ops)
       (println @cnt '/ test-times)
       (swap! cnt inc)
-      (let [server (main/start! (main/server cfg))
+      (let [state0 (reduce (fn [state op]
+                             (run-actual op state nil) ; op-create doesn't need server
+                             (:next-state (run-model state op)))
+                           {}
+                           init-ops)
+            server (main/start! (main/server cfg))
             result
-            (loop [state {}, ops operations]
+            (loop [state state0, ops test-ops]
               (if-let [op (first ops)]
                 (let [{:keys [next-state expect]} (run-model state op)
                       actual (run-actual op state server)]
@@ -172,32 +184,30 @@
         (main/close! server)
         result))))
 
-(def s-ops [{:id "A7001010900",
-             :kind :create,
-             :post
-             {:kur.blog.post/id "A7001010900",
-              :kur.blog.post/meta-str "+",
-              :kur.blog.post/public? true,
-              :kur.blog.post/md-path "test/fixture/post-md/A7001010900.+.md",
-              :md-text ""}}
-            {:kind :wait}
-            {:kind :read,
-             :url "http://localhost:3010/A7001010900.",
-             :id "A7001010900",
-             :post
-             {:kur.blog.post/id "A7001010900",
-              :kur.blog.post/meta-str "+",
-              :kur.blog.post/public? true,
-              :kur.blog.post/md-path "test/fixture/post-md/A7001010900.+.md",
-              :md-text ""}}])
+(def gen-smallest
+  (g/return
+   [[{:id "E7001010859",
+      :kind :create,
+      :post
+      {:kur.blog.post/id "E7001010859",
+       :kur.blog.post/meta-str "+",
+       :kur.blog.post/public? true,
+       :kur.blog.post/md-path "test/fixture/post-md/E7001010859.+.md",
+       :md-text ""}}]
+    [{:kind :read,
+      :url "http://localhost:3010/E7001010859",
+      :id "E7001010859",
+      :post
+      {:kur.blog.post/id "E7001010859",
+       :kur.blog.post/meta-str "+",
+       :kur.blog.post/public? true,
+       :kur.blog.post/md-path "test/fixture/post-md/E7001010859.+.md",
+       :md-text ""}}]]))
 
 (defspec model-test1 #_100
   {:num-tests 1
-   :seed 1661153272533}
-  ;; wait-ms가 작으면 파일을 많이 create 했을 때 에러가 발생한다(당연)
-  ;; cnt를 출력해보면, 설정한 횟수보다 많이 돌아가는 경우 shrink가 발생한 것이다.
-  ;; 50번에 500ms를 하면 통과한다. 그보다 크면 얼마나 오래 기다리든 통과가 어렵다
-  ;; 어차피 한번에 너무 많은 변경이 있는 건 비현실적이다. 그냥 이정도로 하자.
+   ;:seed 1660867454029
+   }
   (let [cnt (atom 1)
         md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
@@ -205,17 +215,22 @@
              :fs-wait-ms #_15 500 :port test-port}]
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
-    (defp [operations (g/return s-ops)]
-      (def operations operations)
+    (defp [[init-ops test-ops] gen-smallest]
+      (def init-ops init-ops)
+      (def test-ops test-ops)
       (println @cnt '/ test-times)
       (swap! cnt inc)
-      (let [server (main/start! (main/server cfg))
+      (let [state0 (reduce (fn [state op]
+                             (run-actual op state nil) ; op-create doesn't need server
+                             (:next-state (run-model state op)))
+                           {}
+                           init-ops)
+            server (main/start! (main/server cfg))
             result
-            (loop [state {}, ops operations]
+            (loop [state state0, ops test-ops]
               (if-let [op (first ops)]
                 (let [{:keys [next-state expect]} (run-model state op)
                       actual (run-actual op state server)]
-                  (def server server)
                   (def this-op op)
                   (def actual actual)
                   (def expect expect)
