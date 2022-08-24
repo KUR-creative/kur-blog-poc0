@@ -5,7 +5,7 @@
    [kur.blog.page.template :refer [basic-head]]))
 
 (defn post-html [text]
-  (html (cons :head basic-head)
+  (html (vec (cons :head basic-head))
         [:body (obsidian-html text)]))
 
 ;;
