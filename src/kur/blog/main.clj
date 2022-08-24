@@ -33,9 +33,11 @@
 
 (defn start! [server]
   #_(println "Start server!")
-  (-> server
-      (update :monitor monitor/start!)
-      (update :publisher publisher/start!)))
+  (let [initialized (-> server
+                        (update :monitor monitor/start!)
+                        (update :publisher publisher/start!))]
+    (updater/update! (:updater initialized))
+    initialized))
 
 #_(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
