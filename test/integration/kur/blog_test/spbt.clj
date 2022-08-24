@@ -17,7 +17,7 @@
             [org.httpkit.client :as http]
             [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3010)
+(def test-port 3000)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -176,73 +176,55 @@
                   (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
-                    #_(throw (Exception. "wtf?"))
-                    false)) ; Test Failed!
+                    (throw (Exception. "wtf?"))
+                    #_false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
         (delete-all-except-gitkeep html-dir)
         (main/close! server)
         result))))
 
-(def gen-smallest
-  (g/return
-   [[{:id "E7001010859",
-      :kind :create,
-      :post
-      {:kur.blog.post/id "E7001010859",
-       :kur.blog.post/meta-str "+",
-       :kur.blog.post/public? true,
-       :kur.blog.post/md-path "test/fixture/post-md/E7001010859.+.md",
-       :md-text ""}}]
-    [{:kind :read,
-      :url "http://localhost:3010/E7001010859",
-      :id "E7001010859",
-      :post
-      {:kur.blog.post/id "E7001010859",
-       :kur.blog.post/meta-str "+",
-       :kur.blog.post/public? true,
-       :kur.blog.post/md-path "test/fixture/post-md/E7001010859.+.md",
-       :md-text ""}}]]))
-
-(defspec model-test1 #_100
-  {:num-tests 1
+#_(def gen-smallest
+    (g/return []))
+#_(defspec model-test1 #_100
+    {:num-tests 1
    ;:seed 1660867454029
-   }
-  (let [cnt (atom 1)
-        md-dir "test/fixture/post-md"
-        html-dir "test/fixture/post-html"
-        cfg {:md-dir md-dir :html-dir html-dir
-             :fs-wait-ms #_15 500 :port test-port}]
-    (delete-all-except-gitkeep md-dir)
-    (delete-all-except-gitkeep html-dir)
-    (defp [[init-ops test-ops] gen-smallest]
-      (def init-ops init-ops)
-      (def test-ops test-ops)
-      (println @cnt '/ test-times)
-      (swap! cnt inc)
-      (let [state0 (reduce (fn [state op]
-                             (run-actual op state nil) ; op-create doesn't need server
-                             (:next-state (run-model state op)))
-                           {}
-                           init-ops)
-            server (main/start! (main/server cfg))
-            result
-            (loop [state state0, ops test-ops]
-              (if-let [op (first ops)]
-                (let [{:keys [next-state expect]} (run-model state op)
-                      actual (run-actual op state server)]
-                  (def this-op op)
-                  (def actual actual)
-                  (def expect expect)
-                  (if (= expect actual)
-                    (recur next-state (rest ops))
-                    #_(throw (Exception. "wtf?"))
-                    false)) ; Test Failed!
-                true))] ; Test Success: All ops are runned succesfully!
-        (delete-all-except-gitkeep md-dir)
-        (delete-all-except-gitkeep html-dir)
-        (main/close! server)
-        result))))
+     }
+    (let [cnt (atom 1)
+          md-dir "test/fixture/post-md"
+          html-dir "test/fixture/post-html"
+          cfg {:md-dir md-dir :html-dir html-dir
+               :fs-wait-ms #_15 500 :port test-port}]
+      (delete-all-except-gitkeep md-dir)
+      (delete-all-except-gitkeep html-dir)
+      (defp [[init-ops test-ops] gen-smallest]
+        (def init-ops init-ops)
+        (def test-ops test-ops)
+        (println @cnt '/ test-times)
+        (swap! cnt inc)
+        (let [state0 (reduce (fn [state op]
+                               (run-actual op state nil) ; op-create doesn't need server
+                               (:next-state (run-model state op)))
+                             {}
+                             init-ops)
+              server (main/start! (main/server cfg))
+              result
+              (loop [state state0, ops test-ops]
+                (if-let [op (first ops)]
+                  (let [{:keys [next-state expect]} (run-model state op)
+                        actual (run-actual op state server)]
+                    (def this-op op)
+                    (def actual actual)
+                    (def expect expect)
+                    (if (= expect actual)
+                      (recur next-state (rest ops))
+                      (throw (Exception. "wtf?"))
+                      #_false)) ; Test Failed!
+                  true))] ; Test Success: All ops are runned succesfully!
+          (delete-all-except-gitkeep md-dir)
+          (delete-all-except-gitkeep html-dir)
+          (main/close! server)
+          result))))
 
 ;;;
 (comment

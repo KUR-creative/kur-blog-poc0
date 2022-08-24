@@ -15,9 +15,9 @@
   (def id:happened id:happened)
   (def id id)
   (and pub?
-       (#{::state/create ::state/update} (id:happened id))
        (s/valid? ::post/id id)
-       (post/modified? old-info new-info)))
+       (or (not (post/cached-html-path new-info))
+           (post/modified? old-info new-info))))
 
 ;;
 (defn updater [state in-dirs post-html-dir]

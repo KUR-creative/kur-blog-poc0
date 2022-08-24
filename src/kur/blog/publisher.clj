@@ -22,8 +22,9 @@
   (let [info (@state (-> (subs (:uri req) 1)
                          post/fname->parts ::post/id))]
     (if (::post/public? info)
-      (resp/file-response (::post/html-path info)
-                          #_(::post/md-path info))
+      (if-let [html-path (post/cached-html-path info)] ; cache hit
+        (resp/file-response html-path)
+        (resp/not-found not-found-body)) ; TODO? do when cache miss?
       (resp/not-found not-found-body))))
 
 ;;

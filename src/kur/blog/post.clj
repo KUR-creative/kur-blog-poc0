@@ -92,7 +92,10 @@
   "Is new file-info modified? (w.r.t. old)"
   [{old ::last-modified-millis} {new ::last-modified-millis}]
   ((fnil < 0 0) old new))
-;((fnil < 0 0) nil 5)
+
+(defn cached-html-path [file-info]
+  (when-let [p (::html-path file-info)]
+    (when (fs/exists? p) p)))
 
 (defn file-info [path]
   (let [fname (str (fs/file-name path)) ; Check stricter? p in md dir? (fs/exists? path)
