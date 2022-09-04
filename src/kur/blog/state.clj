@@ -1,9 +1,11 @@
 (ns kur.blog.state
   (:require
    [clojure.spec.alpha :as s]
-   [kur.blog.post :as post]))
+   [kur.blog.post :as post]
+   [kur.util.file-system :as uf]))
 
-(s/def ::state (s/map-of ::post/id map?)) ;TODO? map? = post/file-info
+(s/def ::state
+  (s/map-of (s/or ::post/id ::uf/path) map?)) ;TODO? map? = post/file-info
 
 (defn state
   "Create state"
