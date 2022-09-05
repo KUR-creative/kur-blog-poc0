@@ -70,6 +70,7 @@
   (def s (close! s)))
 
 (do (require '[clojure.test :refer [run-all-tests]])
+    ;; TODO: Add automatic test ns loading
     (println '----------------------------------------------------)
     #_(run-all-tests #"kur\.blog(.*-test|-test.*)") ;; mine all
     (run-all-tests #"kur\..*-test")) ;; only units
