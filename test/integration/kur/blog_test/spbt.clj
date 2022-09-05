@@ -105,7 +105,7 @@
     :read      {:next-state state
                 :expect
                 (do (def exp (let [post (state (:id op))]
-                               (if (::post/public? post)
+                               (if (:public? post)
                                  (page-post/post-html (:md-text post))
                                  publisher/not-found-body)))
                     exp)}
@@ -114,7 +114,7 @@
     :wait      {:next-state state
                 :expect :no-check}
     :n-publics {:next-state state
-                :expect (count (filter #(-> % val ::post/public?) state))}))
+                :expect (count (filter #(-> % val :public?) state))}))
 
 (defn run-actual [op model-state server]
   (def op op)

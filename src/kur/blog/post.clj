@@ -103,16 +103,16 @@
         exists? (fs/exists? path)]
     (if (s/valid? ::file-name fname)
       (cond-> (assoc info
-                     ::public? (public? (::meta-str info))
-                     ;::exists? exists? ;; Comment out - it can cause mismatch (fs != state)
+                     :public? (public? (::meta-str info))
+                     ;::exists? exists? ;; Comment out - it can cause mismatch (fs != state), and 
                      ::md-path (str path))
         exists? (assoc ::last-modified-millis
-                       (-> path
+                       (-> path ;; TODO: uf/last-modified-millis
                            fs/last-modified-time
                            fs/file-time->millis)))
       {})))
 
-(defn id:file-info [dir & dirs]
+(defn id:file-info [dir & dirs] ;; NOTE: Same with resource/
   (let [infos (->> (fs/list-dirs (cons dir dirs) "*")
                    (map file-info) (filter seq))]
     (zipmap (map ::id infos) infos)))

@@ -8,7 +8,7 @@
 
 (defn need-write?
   "Is new-info(a post) need to write to file system?"
-  [old-info {id ::post/id pub? ::post/public? :as new-info} id:happened]
+  [old-info {id ::post/id pub? :public? :as new-info} id:happened]
   (def old-info old-info)
   (def new-info new-info)
   (def pub? pub?)

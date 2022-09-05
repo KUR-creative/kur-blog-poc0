@@ -21,7 +21,9 @@
   (def state state) (def req req)
   (let [info (@state (-> (subs (:uri req) 1)
                          post/fname->parts ::post/id))]
-    (if (::post/public? info)
+    (tap> state)
+    (tap> info)
+    (if (:public? info)
       (if-let [html-path (post/cached-html-path info)] ; cache hit
         (resp/file-response html-path)
         (resp/not-found not-found-body)) ; TODO? do when cache miss?
