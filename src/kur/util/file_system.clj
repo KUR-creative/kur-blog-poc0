@@ -4,15 +4,16 @@
 
 ;;;
 (s/def ::file-name ;; not a root
-  (s/and string? #(not (#{"" "." ".."} %)) #(not (.contains % "/"))))
+  (s/and #(not (#{"" "." ".."} (str %)))
+         #(not (.contains (str %) "/"))))
 
-(s/def ::path (s/and string? #(not= % "")))
+(s/def ::path #(not= (str %) ""))
 ;; NOTE: Valid unix path are way too robust.
 ;; See https://unix.stackexchange.com/questions/125522/path-syntax-rules
 ;; Maybe . .. / /// ~ etc.. are need to be supported. But not now!
 
 (s/def ::extension
-  (s/and string? #(not (.contains % "/")) #(not= (first %) \.)))
+  (s/and #(not (.contains (str %) "/")) #(not= (first (str %)) \.)))
 
 (s/def ::existing-path (s/and ::path fs/exists?))
 
