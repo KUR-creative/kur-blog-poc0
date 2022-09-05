@@ -22,3 +22,6 @@
   (->> (fs/list-dir dir)
        (remove #(= (fs/file-name %) ".gitkeep"))
        (run! fs/delete)))
+
+(defn last-modified-millis [path]
+  (-> path fs/last-modified-time fs/file-time->millis))
