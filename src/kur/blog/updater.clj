@@ -50,7 +50,7 @@
     (reset! state next-s)
 
     (run! (fn [{out ::post/html-path inp ::post/md-path}]
-            (->> inp slurp page-post/post-html (spit out)))
+            (->> inp slurp (page-post/post-html nil) (spit out)))
           (map next-s ids-to-write))))
 
 #_(do
