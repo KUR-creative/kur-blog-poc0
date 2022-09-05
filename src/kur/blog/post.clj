@@ -1,5 +1,11 @@
 (ns kur.blog.post
-  "Blog post entity"
+  "Post entity.
+
+   Currently, entity only consists of 2 types
+   - post(md file in md-dir)
+   - resource(other extension)
+
+   If you need more than 2 types, consider introducing polymorphism"
   (:require [babashka.fs :as fs]
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as sg]
@@ -67,13 +73,14 @@
   "post-fname is (fs/file-name path). post-fname includes .extension."
   [post-fname]
   (let [base-name (fs/strip-ext post-fname)
-        [id meta title] (str/split base-name #"\." 3)
-        ret {::id id}]
-    (if (s/valid? ::meta-str meta)
-      (assoc-some ret ::meta-str meta ::title title)
-      (if (s/valid? ::title meta)
-        (assoc ret ::title (if title (str meta "." title) meta))
-        ret))))
+        [id meta title] (str/split base-name #"\." 3)]
+    (cond-> {}
+      (s/valid? ::id id) (assoc ::id id)
+      (s/valid? ::meta-str meta) (assoc-some ::meta-str meta
+                                             ::title title)
+      (s/valid? ::title meta) (assoc ::title (if title
+                                               (str meta "." title)
+                                               meta)))))
 
 (s/def ::file-name ;; file name contains extension.
   (s/with-gen (s/and string?
