@@ -34,13 +34,15 @@
     (def info info)
     ;; TODO: Could be refactored using polymorphism
     ;; if entity types are more than 2, use polymorphism!
-    (if (and (:public? info) (::post/id info))
-      (if-let [html-path (post/cached-html-path info)] ; cache hit
-        (resp/file-response html-path)
-        (resp/not-found not-found-body)) ; TODO? do when cache miss?
-      (if (fs/exists? (::resource/id info))
-        (resp/file-response (::resource/id info))
-        (resp/not-found not-found-body)))))
+    (if (:public? info)
+      (if (::post/id info) ; if post
+        (if-let [html-path (post/cached-html-path info)] ; cache hit
+          (resp/file-response html-path)
+          (resp/not-found not-found-body)) ; TODO? do when cache miss?
+        (if (fs/exists? (::resource/id info))
+          (resp/file-response (::resource/id info))
+          (resp/not-found not-found-body)))
+      (resp/not-found not-found-body))))
 
 ;;
 (defn publisher [state jetty-opts] ;; TODO: set ssl, later..

@@ -17,7 +17,7 @@
             [org.httpkit.client :as http]
             [ring.util.codec :refer [url-encode]]))
 
-(def test-port 3000)
+(def test-port 3003)
 
 ;;; Generators and Specs
 (def gen-md-text
@@ -149,6 +149,7 @@
         md-dir "test/fixture/post-md"
         html-dir "test/fixture/post-html"
         cfg {:md-dir md-dir :html-dir html-dir
+             :css-dir "test/fixture/css/test-p"
              :fs-wait-ms #_15 500 :port test-port}]
     (delete-all-except-gitkeep md-dir)
     (delete-all-except-gitkeep html-dir)
@@ -176,8 +177,8 @@
                   (def expect expect)
                   (if (= expect actual)
                     (recur next-state (rest ops))
-                    (throw (Exception. "wtf?"))
-                    #_false)) ; Test Failed!
+                    #_(throw (Exception. "wtf?"))
+                    false)) ; Test Failed!
                 true))] ; Test Success: All ops are runned succesfully!
         (delete-all-except-gitkeep md-dir)
         (delete-all-except-gitkeep html-dir)
