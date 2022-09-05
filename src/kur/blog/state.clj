@@ -2,17 +2,17 @@
   (:require
    [clojure.spec.alpha :as s]
    [kur.blog.post :as post]
+   [kur.blog.resource :as resource]
    [kur.util.file-system :as uf]))
 
 (s/def ::state
   (s/map-of (s/or ::post/id ::uf/path) map?)) ;TODO? map? = post/file-info
 
-(defn state
+(defn state ; TODO: Remove business logic using polymolphism?
   "Create state"
-  [& dirs]
-  (atom (if (seq dirs)
-          (apply post/id:file-info dirs)
-          {})))
+  [md-dir css-dir]
+  (merge (post/id:file-info md-dir)
+         (resource/id:file-info css-dir)))
 
 (defn happened [old-info new-info]
   {:pre [(or old-info new-info)]}

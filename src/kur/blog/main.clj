@@ -16,13 +16,16 @@
 
    md-dir      An directory to MONITOR post markdown
    html-dir    An directory to UPDATE and PUBLISH post html
+   css-dir
    fs-wait-ms  MONITOR waits fs-wait-ms milliseconds
                after consecutive file events in md-dir and then
                requests UPDATER to write/update/delete posts
    port        An port to open to clients"
-  [& {:keys [md-dir html-dir fs-wait-ms port] :as config}]
-  (let [state (state/state md-dir)
-        updater (updater/updater state [md-dir] html-dir)
+  [& {:keys [md-dir html-dir css-dir fs-wait-ms port] :as config}]
+  (let [state (atom (state/state md-dir css-dir))
+        updater (updater/updater state
+                                 [md-dir css-dir] ; TODO: currently implicit! use polymorphism!
+                                 html-dir)
         monitor (monitor/monitor fs-wait-ms
                                  #(updater/update! updater)
                                  md-dir)
@@ -57,6 +60,7 @@
 (comment
   (def s (server :md-dir "test/fixture/blog-v1-md"
                  :html-dir "test/fixture/post-html/"
+                 :css-dir "test/fixture/css/test-p"
                  :fs-wait-ms 1000
                  :port 8080))
   (def s (start! s))

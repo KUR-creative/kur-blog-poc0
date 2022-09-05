@@ -27,7 +27,7 @@
   (let [{state ::state/state
          in-dirs ::in-dirs post-html-dir ::post-html-dir} updater
 
-        old-s @state, new-s (apply post/id:file-info in-dirs)
+        old-s @state, new-s (apply state/state in-dirs)
         happeneds (state/happeneds old-s new-s)
 
         ids-to-write
