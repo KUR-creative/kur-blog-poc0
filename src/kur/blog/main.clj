@@ -44,8 +44,8 @@
 
 #_(require '[babashka.fs :as fs])
 (defn num-public-posts [server]
+  (def server server)
   (count (filter #(:public? (val %)) @(:state server)))
-  #_(def server server)
   #_(->> (:html-dir server)
          fs/list-dir (filter #(re-find #"\.md$" (str %)))
          count))
